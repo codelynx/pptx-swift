@@ -13,11 +13,13 @@ PPTX Swift is designed as a modular Swift package with clear separation between 
 └──────────┬──────────┘
            │ uses
 ┌──────────▼──────────┐
-│      PPTXKit        │  Core parsing library
+│      PPTXKit        │  Core library
 │  ┌───────────────┐  │
 │  │    Models     │  │
 │  ├───────────────┤  │
 │  │   Parsers     │  │
+│  ├───────────────┤  │
+│  │   Rendering   │  │
 │  └───────────────┘  │
 └─────────────────────┘
            │ uses
@@ -49,6 +51,15 @@ The core library handles all PPTX parsing logic and provides a clean API for cli
    - `Slide`: Represents individual slide data
    - `PresentationMetadata`: Contains presentation-level metadata
    - `Relationship`: Models relationships between resources
+
+4. **Rendering Components**
+   - `SlideRenderer`: Core rendering engine that converts slides to images
+   - `RenderingContext`: Configuration for rendering (size, scale, quality)
+   - `ShapeRenderer`: Renders geometric shapes and custom paths
+   - `TextRenderer`: Handles text rendering with font mapping
+   - `ImageRenderer`: Renders embedded images
+   - `PPTXSlideView`: Platform-specific views (UIView/NSView)
+   - `PPTXSlideViewUI`: SwiftUI wrapper for slide rendering
 
 ### PPTXAnalyzerCLI
 
@@ -154,6 +165,62 @@ Errors propagate from PPTXKit to CLI, where they're mapped to appropriate exit c
 - Immutable data models
 - Clear API contracts
 
+## Rendering Architecture
+
+### Overview
+
+The rendering subsystem converts PPTX slides into visual representations using Core Graphics.
+
+```
+┌──────────────────┐
+│  PPTXSlideViewUI │  SwiftUI wrapper
+└────────┬─────────┘
+         │ uses
+┌────────▼─────────┐
+│  PPTXSlideView   │  Platform views (UIView/NSView)
+└────────┬─────────┘
+         │ uses
+┌────────▼─────────┐
+│  SlideRenderer   │  Core rendering engine
+└────────┬─────────┘
+         │ uses
+┌────────▼─────────────────────┐
+│  Element Renderers           │
+│ ┌─────────┐ ┌─────────────┐ │
+│ │ Shape   │ │    Text     │ │
+│ │Renderer │ │  Renderer   │ │
+│ └─────────┘ └─────────────┘ │
+│ ┌─────────────────────────┐ │
+│ │    ImageRenderer        │ │
+│ └─────────────────────────┘ │
+└──────────────────────────────┘
+```
+
+### Rendering Pipeline
+
+1. **Slide Data → Render Elements**
+   - Parse slide structure into renderable elements
+   - Convert EMU coordinates to points/pixels
+   - Apply transforms and styling
+
+2. **Element Rendering**
+   - Each element type has a specialized renderer
+   - Renders to Core Graphics context
+   - Handles platform differences
+
+3. **Quality Settings**
+   - `low`: Fast rendering, minimal effects
+   - `balanced`: Good quality/performance balance  
+   - `high`: Best quality with all effects
+
+### Font Mapping
+
+Windows/Office fonts are mapped to system fonts:
+- Calibri → Helvetica Neue
+- Arial → Helvetica
+- Times New Roman → Times
+- Includes Japanese font mappings
+
 ## Extension Points
 
 The architecture supports future extensions:
@@ -163,6 +230,8 @@ The architecture supports future extensions:
 3. **Enhanced Parsing**: Additional XML elements can be parsed
 4. **Write Support**: Could be added to PPTXKit
 5. **Streaming API**: For processing very large files
+6. **Advanced Rendering**: Support for more complex shapes, effects, and animations
+7. **Export Formats**: PDF, SVG, or other vector formats
 
 ## Performance Considerations
 

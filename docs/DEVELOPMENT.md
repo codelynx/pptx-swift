@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Swift 5.9 or later
-- macOS 12.0 or later
+- macOS 12.0+ or iOS 14.0+ (for rendering features)
 - Xcode 15.0 or later (optional, for IDE support)
 
 ## Setting Up Development Environment
@@ -45,9 +45,20 @@ pptx-swift/
 │   │   ├── XMLParser.swift
 │   │   ├── MetadataXMLParser.swift
 │   │   ├── SlideRelationshipsParser.swift
-│   │   └── Models/
-│   │       ├── Slide.swift
-│   │       └── PresentationMetadata.swift
+│   │   ├── Models/
+│   │   │   ├── Slide.swift
+│   │   │   └── PresentationMetadata.swift
+│   │   └── Rendering/         # Rendering subsystem
+│   │       ├── Core/
+│   │       │   ├── RenderingContext.swift
+│   │       │   └── SlideRenderer.swift
+│   │       ├── Elements/
+│   │       │   ├── ShapeRenderer.swift
+│   │       │   ├── TextRenderer.swift
+│   │       │   └── ImageRenderer.swift
+│   │       └── Platform/
+│   │           ├── PPTXSlideView.swift
+│   │           └── PPTXSlideViewRepresentable.swift
 │   └── PPTXAnalyzerCLI/      # CLI application
 │       ├── PPTXAnalyzer.swift
 │       └── Commands/
@@ -58,6 +69,8 @@ pptx-swift/
 ├── Tests/
 │   ├── PPTXKitTests/
 │   └── PPTXAnalyzerCLITests/
+├── Examples/                  # Example applications
+│   └── RenderingDemo.swift
 ├── docs/                      # Documentation
 ├── samples/                   # Sample PPTX files (git-ignored)
 └── specifications/            # ECMA-376 specifications
@@ -106,6 +119,57 @@ subcommands: [
 2. Update data models if needed
 3. Add methods to `PPTXDocument`
 4. Write tests
+
+### Developing Rendering Features
+
+1. **Adding a New Element Renderer**
+
+Create a new renderer in `Sources/PPTXKit/Rendering/Elements/`:
+
+```swift
+public class MyElementRenderer {
+    private let context: RenderingContext
+    
+    public init(context: RenderingContext) {
+        self.context = context
+    }
+    
+    public func render(_ element: RenderElement, in cgContext: CGContext) throws {
+        // Implementation
+    }
+}
+```
+
+2. **Supporting New Shapes**
+
+Add to `ShapeRenderer.swift`:
+
+```swift
+case .myShape:
+    return createMyShapePath(in: rect)
+```
+
+3. **Platform-Specific Code**
+
+Use conditional compilation:
+
+```swift
+#if canImport(UIKit)
+    // iOS-specific code
+#elseif canImport(AppKit)
+    // macOS-specific code
+#endif
+```
+
+4. **Testing Rendering**
+
+```swift
+func testMyRenderer() throws {
+    let context = RenderingContext(size: CGSize(width: 100, height: 100))
+    let renderer = MyElementRenderer(context: context)
+    // Test rendering
+}
+```
 
 ### Code Style Guidelines
 

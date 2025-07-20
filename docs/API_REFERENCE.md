@@ -2,7 +2,7 @@
 
 ## Overview
 
-PPTXKit is a Swift library for parsing and analyzing PowerPoint (PPTX) files. It provides a programmatic interface to extract information from PPTX files without requiring Microsoft Office.
+PPTXKit is a Swift library for parsing, analyzing, and rendering PowerPoint (PPTX) files. It provides a programmatic interface to extract information from PPTX files and render slides as native views or images without requiring Microsoft Office.
 
 ## Core Classes
 
@@ -230,6 +230,167 @@ PPTXKit is not thread-safe. Each `PPTXDocument` instance should be used from a s
 - Large presentations may consume significant memory
 - Slide content is parsed on-demand when accessing individual slides
 
+## Rendering API
+
+### PPTXSlideView
+
+A platform-specific view for rendering PPTX slides (UIView on iOS, NSView on macOS).
+
+#### Initialization
+
+```swift
+// With slide
+public init(slide: Slide, frame: CGRect)
+
+// With document and index
+public init(document: PPTXDocument, slideIndex: Int, frame: CGRect = .zero)
+
+// With document and ID
+public init(document: PPTXDocument, slideId: String, frame: CGRect = .zero)
+```
+
+#### Properties
+
+```swift
+public var renderingScale: CGFloat      // Rendering scale factor
+public var renderingQuality: RenderingQuality  // Rendering quality setting
+```
+
+### PPTXSlideViewUI
+
+SwiftUI view for rendering PPTX slides.
+
+```swift
+// Initialize with slide
+PPTXSlideViewUI(slide: slide)
+
+// Initialize with document and index
+PPTXSlideViewUI(document: document, slideIndex: 1)
+
+// Configure rendering
+PPTXSlideViewUI(document: document, slideIndex: 1)
+    .renderingQuality(.high)
+    .renderingScale(2.0)
+    .frame(width: 800, height: 600)
+```
+
+### SlideRenderer
+
+Core rendering engine for converting slides to images.
+
+```swift
+public class SlideRenderer {
+    public init(context: RenderingContext)
+    public func render(slide: Slide) throws -> CGImage
+}
+```
+
+### RenderingContext
+
+Configuration for slide rendering.
+
+```swift
+public class RenderingContext {
+    public init(
+        size: CGSize,
+        scale: CGFloat = 1.0,
+        quality: RenderingQuality = .balanced
+    )
+    
+    public func emuToPoints(_ emu: Int) -> CGFloat
+    public func emuToPixels(_ emu: Int) -> CGFloat
+}
+```
+
+### RenderingQuality
+
+Quality settings for rendering.
+
+```swift
+public enum RenderingQuality {
+    case low       // Fast rendering, minimal effects
+    case balanced  // Good quality/performance balance
+    case high      // Best quality, all effects
+}
+```
+
+## Rendering Examples
+
+### SwiftUI Integration
+
+```swift
+import SwiftUI
+import PPTXKit
+
+struct SlideView: View {
+    let document: PPTXDocument
+    @State private var slideIndex = 1
+    
+    var body: some View {
+        VStack {
+            PPTXSlideViewUI(document: document, slideIndex: slideIndex)
+                .renderingQuality(.high)
+                .frame(height: 600)
+            
+            HStack {
+                Button("Previous") {
+                    if slideIndex > 1 { slideIndex -= 1 }
+                }
+                Text("Slide \(slideIndex)")
+                Button("Next") {
+                    if slideIndex < (try? document.getSlideCount()) ?? 0 {
+                        slideIndex += 1
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### UIKit/AppKit Integration
+
+```swift
+// iOS
+let slideView = PPTXSlideView(document: document, slideIndex: 1)
+slideView.renderingQuality = .high
+slideView.frame = view.bounds
+view.addSubview(slideView)
+
+// macOS
+let slideView = PPTXSlideView(document: document, slideIndex: 1)
+slideView.renderingQuality = .high
+slideView.frame = view.bounds
+view.addSubview(slideView)
+```
+
+### Image Export
+
+```swift
+// Render slide to image
+let context = RenderingContext(
+    size: CGSize(width: 1920, height: 1080),
+    scale: 2.0,
+    quality: .high
+)
+let renderer = SlideRenderer(context: context)
+let image = try renderer.render(slide: slide)
+
+// Save to file (iOS)
+if let uiImage = UIImage(cgImage: image) {
+    let data = uiImage.pngData()
+    try data?.write(to: outputURL)
+}
+
+// Save to file (macOS)
+let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+if let tiffData = nsImage.tiffRepresentation,
+   let bitmap = NSBitmapImageRep(data: tiffData),
+   let pngData = bitmap.representation(using: .png, properties: [:]) {
+    try pngData.write(to: outputURL)
+}
+```
+
 ## Limitations
 
 - Read-only access (no modification support)
@@ -237,3 +398,5 @@ PPTXKit is not thread-safe. Each `PPTXDocument` instance should be used from a s
 - Notes parsing not fully implemented
 - No support for animations or transitions
 - Media files are detected but not extracted
+- Rendering currently shows placeholder content (full XML parsing in development)
+- Complex shapes and effects may not render accurately

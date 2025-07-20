@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
     name: "PPTXAnalyzer",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v12),
+        .iOS(.v14)
     ],
     products: [
         // Executable CLI tool

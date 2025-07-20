@@ -12,8 +12,10 @@ PPTX Analyzer provides both a command-line interface and a Swift library (PPTXKi
 - 📋 **Slide Listing** - List all slides with multiple output formats (text, JSON, table)
 - 🔍 **Detailed Slide Info** - Extract text, shapes, and relationships from individual slides
 - 📄 **Presentation Metadata** - Access title, author, creation date, and more
+- 🎨 **Slide Rendering** - Render slides as native iOS/macOS views or images
 - 🚀 **Fast & Efficient** - On-demand parsing for optimal performance
 - 🔧 **Dual Interface** - Use as CLI tool or Swift library
+- 📱 **Cross-Platform** - Supports iOS 14+ and macOS 12+
 
 ## Installation
 
@@ -94,6 +96,33 @@ let metadata = try document.getMetadata()
 print("Author: \(metadata.author ?? "Unknown")")
 ```
 
+### Rendering Slides
+
+```swift
+import PPTXKit
+import SwiftUI
+
+// SwiftUI view
+struct ContentView: View {
+    let document: PPTXDocument
+    
+    var body: some View {
+        PPTXSlideViewUI(document: document, slideIndex: 1)
+            .renderingQuality(.high)
+            .frame(width: 800, height: 600)
+    }
+}
+
+// UIKit/AppKit
+let slideView = PPTXSlideView(document: document, slideIndex: 1)
+slideView.renderingQuality = .high
+view.addSubview(slideView)
+
+// Render to image
+let renderer = SlideRenderer(context: RenderingContext(size: CGSize(width: 1920, height: 1080)))
+let image = try renderer.render(slide: slide)
+```
+
 See [API Reference](docs/API_REFERENCE.md) for complete library documentation.
 
 ## Documentation
@@ -118,7 +147,7 @@ pptx-swift/
 ## Requirements
 
 - Swift 5.9 or later
-- macOS 12.0 or later
+- macOS 12.0+ or iOS 14.0+
 
 ## Dependencies
 
