@@ -17,6 +17,24 @@
 			"name": "Release pptx-analyzer",
 			"program": "${workspaceFolder:pptx-swift}/.build/release/pptx-analyzer",
 			"preLaunchTask": "swift: Build Release pptx-analyzer"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:pptx-swift}",
+			"name": "Debug TestMacOSApp",
+			"program": "${workspaceFolder:pptx-swift}/.build/debug/TestMacOSApp",
+			"preLaunchTask": "swift: Build Debug TestMacOSApp"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:pptx-swift}",
+			"name": "Release TestMacOSApp",
+			"program": "${workspaceFolder:pptx-swift}/.build/release/TestMacOSApp",
+			"preLaunchTask": "swift: Build Release TestMacOSApp"
 		}
 	]
 }

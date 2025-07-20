@@ -1,5 +1,11 @@
 import Foundation
 import CoreGraphics
+import ZIPFoundation
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 /// Renderer for image elements
 public class ImageRenderer {
@@ -104,10 +110,47 @@ public class ImageRenderer {
 
 extension ImageRenderer {
     /// Load image from slide relationship
-    public func loadImage(from relationship: Relationship, in archive: Any?) async throws -> CGImage? {
-        // TODO: Implement image extraction from PPTX archive
-        // This would extract the image from the ZIP archive
-        return nil
+    public func loadImage(from relationship: Relationship, in archive: Archive?) async throws -> CGImage? {
+        guard let archive = archive else {
+            throw RenderingError.missingResource("No archive provided")
+        }
+        
+        // Build the full path to the image in the archive
+        let imagePath = "ppt/\(relationship.target)"
+        
+        // Find the entry in the archive
+        guard let entry = archive[imagePath] else {
+            throw RenderingError.missingResource("Image not found: \(imagePath)")
+        }
+        
+        // Extract the image data
+        var imageData = Data()
+        do {
+            _ = try archive.extract(entry) { data in
+                imageData.append(data)
+            }
+        } catch {
+            throw RenderingError.missingResource("Failed to extract image: \(error)")
+        }
+        
+        // Create CGImage from data
+        #if canImport(UIKit)
+        guard let uiImage = UIImage(data: imageData),
+              let cgImage = uiImage.cgImage else {
+            throw RenderingError.missingResource("Failed to create image from data")
+        }
+        return cgImage
+        #elseif canImport(AppKit)
+        guard let nsImage = NSImage(data: imageData) else {
+            throw RenderingError.missingResource("Failed to create NSImage from data")
+        }
+        
+        // Convert NSImage to CGImage
+        guard let cgImage = nsImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            throw RenderingError.missingResource("Failed to get CGImage from NSImage")
+        }
+        return cgImage
+        #endif
     }
 }
 

@@ -1,0 +1,351 @@
+// !$*UTF8*$!
+{
+    archiveVersion = 1;
+    classes = {
+    };
+    objectVersion = 56;
+    objects = {
+
+/* Begin PBXBuildFile section */
+        43D7714097804EF0A4565F9624537756 /* PPTXViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */; };
+        91551AEB3EC84ADBB96DCB33F10BA213 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */; };
+        8992B7137FAB47268E6A327192280D9E /* PPTXViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D50166012FE4796BA26027541C54A70 /* PPTXViewerApp.swift */; };
+        0E5A3B9A4ABC4E7C9730DF4EA9A3BF67 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8003F2010AC147C18C024A202D33B7C9 /* ContentView.swift */; };
+        B820BD2B54BE4177AF143D021DC63027 /* PPTXKit in Frameworks */ = {isa = PBXBuildFile; productRef = B820BD2B54BE4177AF143D02PRODUCT /* PPTXKit */; };
+        478BA3BEE4D14C60B560FC18B089A35E /* PPTXKit in Frameworks */ = {isa = PBXBuildFile; productRef = 478BA3BEE4D14C60B560FC18PRODUCT /* PPTXKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+        0EC3FF6A92B440B08D2ADD64B74248A8 /* PPTXViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PPTXViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+        7C16093DEE7349EE934F8DE5A581098A /* PPTXViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PPTXViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+        7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPTXViewerApp.swift; sourceTree = "<group>"; };
+        12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+        2D50166012FE4796BA26027541C54A70 /* PPTXViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPTXViewerApp.swift; sourceTree = "<group>"; };
+        8003F2010AC147C18C024A202D33B7C9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+        B08E3322B2DB4CD8951CC303AA036AED /* Frameworks */ = {
+            isa = PBXFrameworksBuildPhase;
+            buildActionMask = 2147483647;
+            files = (
+                B820BD2B54BE4177AF143D021DC63027 /* PPTXKit in Frameworks */,
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+        6EA7C16FF30441BE87B1759A29F50AB8 /* Frameworks */ = {
+            isa = PBXFrameworksBuildPhase;
+            buildActionMask = 2147483647;
+            files = (
+                478BA3BEE4D14C60B560FC18B089A35E /* PPTXKit in Frameworks */,
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+        8115FBC6B9DA470BAF31F94C30353EE6 = {
+            isa = PBXGroup;
+            children = (
+                DA8D2DC766E54E41A0E3D0A5ABE33815 /* iOS */,
+                69D4A1C507E644F3B7820E29925C8979 /* macOS */,
+                8115FBC6B9DA470BAF31F94CPRODUCTS /* Products */,
+            );
+            sourceTree = "<group>";
+        };
+        8115FBC6B9DA470BAF31F94CPRODUCTS /* Products */ = {
+            isa = PBXGroup;
+            children = (
+                0EC3FF6A92B440B08D2ADD64B74248A8 /* PPTXViewer.app */,
+                7C16093DEE7349EE934F8DE5A581098A /* PPTXViewer.app */,
+            );
+            name = Products;
+            sourceTree = "<group>";
+        };
+        DA8D2DC766E54E41A0E3D0A5ABE33815 /* iOS */ = {
+            isa = PBXGroup;
+            children = (
+                7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */,
+                12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */,
+            );
+            path = "PPTXViewer-iOS";
+            sourceTree = "<group>";
+        };
+        69D4A1C507E644F3B7820E29925C8979 /* macOS */ = {
+            isa = PBXGroup;
+            children = (
+                2D50166012FE4796BA26027541C54A70 /* PPTXViewerApp.swift */,
+                8003F2010AC147C18C024A202D33B7C9 /* ContentView.swift */,
+            );
+            path = "PPTXViewer-macOS";
+            sourceTree = "<group>";
+        };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+        0EC3FF6A92B440B08D2ADD64IOSTARGET /* PPTXViewer (iOS) */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = BD44AF7E445D453A9F722C5C8A5386C9 /* Build configuration list for PBXNativeTarget "PPTXViewer (iOS)" */;
+            buildPhases = (
+                0E111B7A0CF140888C15AA46E3F3335E /* Sources */,
+                B08E3322B2DB4CD8951CC303AA036AED /* Frameworks */,
+            );
+            buildRules = (
+            );
+            dependencies = (
+            );
+            name = "PPTXViewer (iOS)";
+            packageProductDependencies = (
+                B820BD2B54BE4177AF143D02PRODUCT /* PPTXKit */,
+            );
+            productName = "PPTXViewer";
+            productReference = 0EC3FF6A92B440B08D2ADD64B74248A8 /* PPTXViewer.app */;
+            productType = "com.apple.product-type.application";
+        };
+        7C16093DEE7349EE934F8DE5MACOSTARGET /* PPTXViewer (macOS) */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = 740452BD30204B9BB543D95D288D6CE1 /* Build configuration list for PBXNativeTarget "PPTXViewer (macOS)" */;
+            buildPhases = (
+                5BB18ACC438944D89CF43445156FA5C5 /* Sources */,
+                6EA7C16FF30441BE87B1759A29F50AB8 /* Frameworks */,
+            );
+            buildRules = (
+            );
+            dependencies = (
+            );
+            name = "PPTXViewer (macOS)";
+            packageProductDependencies = (
+                478BA3BEE4D14C60B560FC18PRODUCT /* PPTXKit */,
+            );
+            productName = "PPTXViewer";
+            productReference = 7C16093DEE7349EE934F8DE5A581098A /* PPTXViewer.app */;
+            productType = "com.apple.product-type.application";
+        };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+        8115FBC6B9DA470BAF31F94CPROJECT /* Project object */ = {
+            isa = PBXProject;
+            attributes = {
+                BuildIndependentTargetsInParallel = 1;
+                LastSwiftUpdateCheck = 1500;
+                LastUpgradeCheck = 1500;
+            };
+            buildConfigurationList = 1A4C021997DD419E8673FF9A86D1DA29 /* Build configuration list for PBXProject "PPTXViewer" */;
+            compatibilityVersion = "Xcode 14.0";
+            developmentRegion = en;
+            hasScannedForEncodings = 0;
+            knownRegions = (
+                en,
+                Base,
+            );
+            mainGroup = 8115FBC6B9DA470BAF31F94C30353EE6;
+            packageReferences = (
+                15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */,
+            );
+            productRefGroup = 8115FBC6B9DA470BAF31F94CPRODUCTS /* Products */;
+            projectDirPath = "";
+            projectRoot = "";
+            targets = (
+                0EC3FF6A92B440B08D2ADD64IOSTARGET /* PPTXViewer (iOS) */,
+                7C16093DEE7349EE934F8DE5MACOSTARGET /* PPTXViewer (macOS) */,
+            );
+        };
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+        0E111B7A0CF140888C15AA46E3F3335E /* Sources */ = {
+            isa = PBXSourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = (
+                43D7714097804EF0A4565F9624537756 /* PPTXViewerApp.swift in Sources */,
+                91551AEB3EC84ADBB96DCB33F10BA213 /* ContentView.swift in Sources */,
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+        5BB18ACC438944D89CF43445156FA5C5 /* Sources */ = {
+            isa = PBXSourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = (
+                8992B7137FAB47268E6A327192280D9E /* PPTXViewerApp.swift in Sources */,
+                0E5A3B9A4ABC4E7C9730DF4EA9A3BF67 /* ContentView.swift in Sources */,
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+        38F31C61DCA748B39A17716B7F6DEEA3 /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = NO;
+                CLANG_ANALYZER_NONNULL = YES;
+                CLANG_ENABLE_MODULES = YES;
+                CLANG_ENABLE_OBJC_ARC = YES;
+                DEBUG_INFORMATION_FORMAT = dwarf;
+                ENABLE_STRICT_OBJC_MSGSEND = YES;
+                GCC_C_LANGUAGE_STANDARD = gnu11;
+                GCC_NO_COMMON_BLOCKS = YES;
+                GCC_OPTIMIZATION_LEVEL = 0;
+                MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+                MTL_FAST_MATH = YES;
+                ONLY_ACTIVE_ARCH = YES;
+                SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+                SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+                SWIFT_VERSION = 5.0;
+            };
+            name = Debug;
+        };
+        0C6D9EC1CF6C47AD830C660658655886 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = NO;
+                CLANG_ANALYZER_NONNULL = YES;
+                CLANG_ENABLE_MODULES = YES;
+                CLANG_ENABLE_OBJC_ARC = YES;
+                DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+                ENABLE_NS_ASSERTIONS = NO;
+                ENABLE_STRICT_OBJC_MSGSEND = YES;
+                GCC_C_LANGUAGE_STANDARD = gnu11;
+                GCC_NO_COMMON_BLOCKS = YES;
+                MTL_ENABLE_DEBUG_INFO = NO;
+                MTL_FAST_MATH = YES;
+                SWIFT_COMPILATION_MODE = wholemodule;
+                SWIFT_OPTIMIZATION_LEVEL = "-O";
+                SWIFT_VERSION = 5.0;
+            };
+            name = Release;
+        };
+        885032BEFEE746B5AB8E00542706D21E /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                CODE_SIGN_STYLE = Automatic;
+                CURRENT_PROJECT_VERSION = 1;
+                ENABLE_PREVIEWS = YES;
+                GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_FILE = "PPTXViewer-iOS/Info.plist";
+                IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+                MARKETING_VERSION = 1.0;
+                PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";
+                PRODUCT_NAME = "PPTXViewer";
+                SDKROOT = iphoneos;
+                SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+                SWIFT_EMIT_LOC_STRINGS = YES;
+                TARGETED_DEVICE_FAMILY = "1,2";
+            };
+            name = Debug;
+        };
+        37F45BA08CE5472BAA858593045EF4C0 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                CODE_SIGN_STYLE = Automatic;
+                CURRENT_PROJECT_VERSION = 1;
+                ENABLE_PREVIEWS = YES;
+                GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_FILE = "PPTXViewer-iOS/Info.plist";
+                IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+                MARKETING_VERSION = 1.0;
+                PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";
+                PRODUCT_NAME = "PPTXViewer";
+                SDKROOT = iphoneos;
+                SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+                SWIFT_EMIT_LOC_STRINGS = YES;
+                TARGETED_DEVICE_FAMILY = "1,2";
+                VALIDATE_PRODUCT = YES;
+            };
+            name = Release;
+        };
+        4620DD1DA721416395C993AAE83CD65F /* Debug */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                CODE_SIGN_STYLE = Automatic;
+                COMBINE_HIDPI_IMAGES = YES;
+                CURRENT_PROJECT_VERSION = 1;
+                ENABLE_PREVIEWS = YES;
+                GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_FILE = "PPTXViewer-macOS/Info.plist";
+                MACOSX_DEPLOYMENT_TARGET = 13.0;
+                MARKETING_VERSION = 1.0;
+                PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";
+                PRODUCT_NAME = "PPTXViewer";
+                SDKROOT = macosx;
+                SWIFT_EMIT_LOC_STRINGS = YES;
+            };
+            name = Debug;
+        };
+        2F352C16FF7243AF9E408CC4497DC3F3 /* Release */ = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                CODE_SIGN_STYLE = Automatic;
+                COMBINE_HIDPI_IMAGES = YES;
+                CURRENT_PROJECT_VERSION = 1;
+                ENABLE_PREVIEWS = YES;
+                GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_FILE = "PPTXViewer-macOS/Info.plist";
+                MACOSX_DEPLOYMENT_TARGET = 13.0;
+                MARKETING_VERSION = 1.0;
+                PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";
+                PRODUCT_NAME = "PPTXViewer";
+                SDKROOT = macosx;
+                SWIFT_EMIT_LOC_STRINGS = YES;
+            };
+            name = Release;
+        };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+        1A4C021997DD419E8673FF9A86D1DA29 /* Build configuration list for PBXProject "PPTXViewer" */ = {
+            isa = XCConfigurationList;
+            buildConfigurations = (
+                38F31C61DCA748B39A17716B7F6DEEA3 /* Debug */,
+                0C6D9EC1CF6C47AD830C660658655886 /* Release */,
+            );
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
+        };
+        BD44AF7E445D453A9F722C5C8A5386C9 /* Build configuration list for PBXNativeTarget "PPTXViewer (iOS)" */ = {
+            isa = XCConfigurationList;
+            buildConfigurations = (
+                885032BEFEE746B5AB8E00542706D21E /* Debug */,
+                37F45BA08CE5472BAA858593045EF4C0 /* Release */,
+            );
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
+        };
+        740452BD30204B9BB543D95D288D6CE1 /* Build configuration list for PBXNativeTarget "PPTXViewer (macOS)" */ = {
+            isa = XCConfigurationList;
+            buildConfigurations = (
+                4620DD1DA721416395C993AAE83CD65F /* Debug */,
+                2F352C16FF7243AF9E408CC4497DC3F3 /* Release */,
+            );
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
+        };
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+        15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */ = {
+            isa = XCLocalSwiftPackageReference;
+            relativePath = ..;
+        };
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+        B820BD2B54BE4177AF143D02PRODUCT /* PPTXKit */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = 15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */;
+            productName = PPTXKit;
+        };
+        478BA3BEE4D14C60B560FC18PRODUCT /* PPTXKit */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = 15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */;
+            productName = PPTXKit;
+        };
+/* End XCSwiftPackageProductDependency section */
+    };
+    rootObject = 8115FBC6B9DA470BAF31F94CPROJECT /* Project object */;
+}

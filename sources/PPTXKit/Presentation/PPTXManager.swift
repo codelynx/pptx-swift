@@ -78,8 +78,17 @@ public class PPTXManager: ObservableObject {
             let doc = try PPTXDocument(filePath: filePath)
             self.document = doc
             
-            // Load slides
-            self.slides = try doc.getSlides()
+            // Load slides with full details
+            let basicSlides = try doc.getSlides()
+            self.slides = []
+            
+            // Load full details for each slide
+            for (index, _) in basicSlides.enumerated() {
+                if let detailedSlide = try doc.getSlide(at: index + 1) {
+                    self.slides.append(detailedSlide)
+                }
+            }
+            
             self.slideCount = slides.count
             
             // Load metadata

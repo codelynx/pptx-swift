@@ -1,0 +1,24 @@
+# Xcode user settings
+xcuserdata/
+*.xcuserstate
+
+# Build artifacts
+build/
+DerivedData/
+*.dSYM
+*.ipa
+
+# Swift Package Manager
+.build/
+Package.resolved
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.swp
+*~.nib
+
+# Generated Xcode workspace files (we only need the project)
+*.xcworkspace/

@@ -21,6 +21,8 @@ cd pptx-swift
 swift build
 ```
 
+**Important:** The source directory must be named `Sources` (with uppercase S) for the Swift Package Manager to recognize it correctly. If you encounter "Cannot find type in scope" errors, ensure the directory is properly capitalized.
+
 ### 3. Run Tests
 
 ```bash
@@ -304,6 +306,21 @@ instruments -t "Time Profiler" .build/release/pptx-analyzer list large.pptx
 2. **Invalid PPTX**: Verify with `unzip -t file.pptx`
 3. **Memory issues**: Check for large media files in PPTX
 
+## Code Style
+
+### Indentation
+- Use **tabs** for indentation (not spaces)
+- Tab width: 4 spaces (for display)
+- Configuration files are provided:
+  - `.editorconfig` for cross-editor support
+  - `.vscode/settings.json` for VS Code
+
+### Swift Style
+- Follow [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/)
+- Use descriptive variable and function names
+- Keep functions focused and small
+- Document public APIs with comments
+
 ## Contributing
 
 1. Fork the repository
@@ -315,7 +332,7 @@ instruments -t "Time Profiler" .build/release/pptx-analyzer list large.pptx
 
 ### Pull Request Checklist
 
-- [ ] Code follows style guidelines
+- [ ] Code follows style guidelines (tabs for indentation)
 - [ ] All tests pass
 - [ ] New features have tests
 - [ ] Documentation is updated

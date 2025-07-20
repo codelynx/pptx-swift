@@ -12,11 +12,12 @@ PPTX Analyzer provides both a command-line interface and a Swift library (PPTXKi
 - 📋 **Slide Listing** - List all slides with multiple output formats (text, JSON, table)
 - 🔍 **Detailed Slide Info** - Extract text, shapes, and relationships from individual slides
 - 📄 **Presentation Metadata** - Access title, author, creation date, and more
-- 🎨 **Slide Rendering** - Render slides as native iOS/macOS views or images
+- 🎨 **Slide Rendering** - Render slides as native iOS/macOS views or images with accurate layout
 - 🎯 **Presentation Management** - High-level API for navigation and state management
 - 🚀 **Fast & Efficient** - On-demand parsing for optimal performance
 - 🔧 **Dual Interface** - Use as CLI tool or Swift library
-- 📱 **Cross-Platform** - Supports iOS 14+ and macOS 12+
+- 📱 **Cross-Platform** - Supports iOS 16+ and macOS 13+
+- 🔤 **Advanced XML Parsing** - Detailed slide content extraction with proper text positioning
 
 ## Installation
 
@@ -149,12 +150,24 @@ let slideView = PPTXSlideView(document: document, slideIndex: 1)
 slideView.renderingQuality = .high
 view.addSubview(slideView)
 
-// Render to image
+// Render to image with accurate layout
 let renderer = SlideRenderer(context: RenderingContext(size: CGSize(width: 1920, height: 1080)))
 let image = try renderer.render(slide: slide)
+
+// The renderer now uses SlideXMLParser for accurate text positioning
+// and proper handling of PowerPoint's complex layout structure
 ```
 
 See [API Reference](docs/API_REFERENCE.md) for complete library documentation.
+
+## Sample Applications
+
+Complete sample apps are provided for both iOS and macOS platforms:
+
+- **iOS Viewer** (`SampleApps/PPTXViewer-iOS/`) - Universal iOS app with document browser
+- **macOS Viewer** (`SampleApps/PPTXViewer-macOS/`) - Native macOS app with split view
+
+See [Sample Apps README](SampleApps/README.md) for setup instructions.
 
 ## Documentation
 
@@ -171,6 +184,9 @@ pptx-swift/
 │   ├── PPTXKit/           # Core parsing library
 │   └── PPTXAnalyzerCLI/   # Command-line interface
 ├── Tests/                 # Unit and integration tests
+├── SampleApps/            # iOS and macOS sample applications
+│   ├── PPTXViewer-iOS/    # iOS viewer app
+│   └── PPTXViewer-macOS/  # macOS viewer app
 ├── docs/                  # Documentation
 └── specifications/        # ECMA-376 reference files
 ```
@@ -178,7 +194,8 @@ pptx-swift/
 ## Requirements
 
 - Swift 5.9 or later
-- macOS 12.0+ or iOS 14.0+
+- macOS 13.0+ or iOS 16.0+
+- Xcode 15.0+ (for development)
 
 ## Dependencies
 

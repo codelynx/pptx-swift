@@ -65,6 +65,12 @@ struct List: ParsableCommand {
             case .missingRequiredFile, .invalidXML:
                 fputs("Error: \(error.localizedDescription)\n", stderr)
                 throw ExitCode(2)
+            case .slideNotFound:
+                fputs("Error: \(error.localizedDescription)\n", stderr)
+                throw ExitCode(4)
+            case .documentNotSet:
+                fputs("Error: \(error.localizedDescription)\n", stderr)
+                throw ExitCode(3)
             }
         } catch {
             fputs("Error: \(error.localizedDescription)\n", stderr)

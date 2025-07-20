@@ -168,6 +168,84 @@ public struct PresentationMetadata {
 }
 ```
 
+## XML Parsing Classes
+
+### SlideXMLParser
+
+Advanced parser for extracting detailed slide content with accurate layout information.
+
+```swift
+public class SlideXMLParser: NSObject {
+    public func parseSlide(data: Data) throws -> [ShapeInfo]
+}
+```
+
+#### ShapeInfo
+
+Represents a shape on the slide with positioning and content.
+
+```swift
+public struct ShapeInfo {
+    public let id: String
+    public let frame: CGRect
+    public let transform: CGAffineTransform
+    public let type: ShapeType
+}
+
+public enum ShapeType {
+    case textBox(TextBoxInfo)
+    case picture(PictureInfo)
+    case shape(ShapeData)
+}
+```
+
+#### TextBoxInfo
+
+Contains text content with formatting and layout properties.
+
+```swift
+public struct TextBoxInfo {
+    public let paragraphs: [ParagraphInfo]
+    public let bodyProperties: BodyProperties
+}
+
+public struct ParagraphInfo {
+    public let runs: [TextRun]
+    public let properties: ParagraphProperties
+}
+
+public struct TextRun {
+    public let text: String
+    public let properties: RunProperties
+}
+```
+
+#### Text Properties
+
+```swift
+public struct RunProperties {
+    public let fontSize: CGFloat?
+    public let bold: Bool
+    public let italic: Bool
+    public let underline: Bool
+    public let fontFamily: String?
+    public let color: String?
+}
+
+public struct ParagraphProperties {
+    public let alignment: NSTextAlignment
+    public let indent: CGFloat
+    public let bulletType: BulletType?
+    public let spacing: LineSpacing
+}
+
+public enum BulletType {
+    case bullet(String)
+    case number(String)
+    case none
+}
+```
+
 ## Usage Examples
 
 ### Basic Usage

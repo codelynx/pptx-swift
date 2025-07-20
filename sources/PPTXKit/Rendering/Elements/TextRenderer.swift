@@ -49,9 +49,17 @@ public class TextRenderer {
         cgContext.saveGState()
         
         // Flip coordinate system for text rendering
+        #if os(macOS)
+        // On macOS, we've already flipped the context in SlideRenderer, but Core Text needs another flip
         cgContext.translateBy(x: 0, y: element.frame.maxY)
         cgContext.scaleBy(x: 1, y: -1)
         cgContext.translateBy(x: 0, y: -element.frame.minY)
+        #else
+        // On iOS, flip for text rendering
+        cgContext.translateBy(x: 0, y: element.frame.maxY)
+        cgContext.scaleBy(x: 1, y: -1)
+        cgContext.translateBy(x: 0, y: -element.frame.minY)
+        #endif
         
         // Draw the frame
         CTFrameDraw(ctFrame, cgContext)
@@ -105,10 +113,19 @@ public class FontMapper {
         
         // Japanese fonts
         "MS Gothic": "Hiragino Kaku Gothic ProN",
+        "MS PGothic": "Hiragino Kaku Gothic ProN",
         "MS Mincho": "Hiragino Mincho ProN",
+        "MS PMincho": "Hiragino Mincho ProN",
         "Meiryo": "Hiragino Sans",
+        "Meiryo UI": "Hiragino Sans",
         "Yu Gothic": "Hiragino Sans",
-        "Yu Mincho": "Hiragino Mincho ProN"
+        "Yu Gothic UI": "Hiragino Sans",
+        "Yu Mincho": "Hiragino Mincho ProN",
+        "メイリオ": "Hiragino Sans",
+        "游ゴシック": "Hiragino Sans",
+        "游明朝": "Hiragino Mincho ProN",
+        "ＭＳ ゴシック": "Hiragino Kaku Gothic ProN",
+        "ＭＳ 明朝": "Hiragino Mincho ProN"
     ]
     
     public func mapFont(_ font: PlatformFont) -> PlatformFont {
@@ -143,10 +160,14 @@ public class FontMapper {
         let familyName: String
         if isMonospace {
             familyName = "Menlo"
-        } else if font.familyName?.lowercased().contains("serif") == true {
-            familyName = "Times"
         } else {
-            familyName = "Helvetica Neue"
+            let fontFamily = font.familyName ?? ""
+            
+            if fontFamily.lowercased().contains("serif") {
+                familyName = "Times"
+            } else {
+                familyName = "Helvetica Neue"
+            }
         }
         
         // Build font with traits
@@ -188,9 +209,15 @@ extension TextRenderer {
         )
         
         context.saveGState()
+        
+        #if os(macOS)
+        // On macOS, we've already flipped the context in SlideRenderer, so no need to flip again
+        #else
+        // On iOS, flip for text rendering
         context.translateBy(x: 0, y: frame.maxY)
         context.scaleBy(x: 1, y: -1)
         context.translateBy(x: 0, y: -frame.minY)
+        #endif
         
         CTFrameDraw(ctFrame, context)
         

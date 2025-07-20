@@ -44,6 +44,7 @@ The core library handles all PPTX parsing logic and provides a clean API for cli
 
 2. **XML Parsers**
    - `XMLParser`: Generic XML parsing for presentations and slides
+   - `SlideXMLParser`: Advanced parser for detailed slide content and layout
    - `MetadataXMLParser`: Specialized parser for document properties
    - `SlideRelationshipsParser`: Parses slide relationships
 
@@ -198,12 +199,17 @@ The rendering subsystem converts PPTX slides into visual representations using C
 
 ### Rendering Pipeline
 
-1. **Slide Data → Render Elements**
-   - Parse slide structure into renderable elements
+1. **Slide Data → XML Parsing**
+   - SlideXMLParser extracts detailed layout from raw XML
+   - Parses text boxes, shapes, and positioning data
+   - Extracts font properties, colors, and alignments
+
+2. **XML Data → Render Elements**
+   - Convert parsed shapes into renderable elements
    - Convert EMU coordinates to points/pixels
    - Apply transforms and styling
 
-2. **Element Rendering**
+3. **Element Rendering**
    - Each element type has a specialized renderer
    - Renders to Core Graphics context
    - Handles platform differences

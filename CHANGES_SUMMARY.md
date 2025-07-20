@@ -90,3 +90,53 @@ All tests passing:
 - ✅ Debug build successful
 - ✅ Release build successful
 - ⚠️ One deprecation warning in PPTXDocument.swift (pre-existing)
+
+## Recent Updates (July 2025)
+
+### SlideXMLParser Implementation
+1. **New XML Parser** (`Sources/PPTXKit/SlideXMLParser.swift`)
+   - Sophisticated parsing of PPTX slide XML structure
+   - Extracts accurate text positioning and formatting
+   - Handles complex PowerPoint layouts properly
+   - Supports text boxes, shapes, and pictures
+   - Parses font properties, colors, and alignments
+
+2. **Rendering Improvements**
+   - `SlideRenderer.swift` now uses SlideXMLParser for accurate layout
+   - Fixed text splitting issues (e.g., "Diet & Nutrition" now renders correctly)
+   - Proper handling of text runs and paragraphs
+   - Accurate positioning based on actual PPTX data
+
+### Code Style Updates
+1. **Tab Conversion**
+   - Converted all core PPTXKit files from spaces to tabs
+   - Added `.editorconfig` for cross-editor consistency
+   - Added VS Code settings for tab preferences
+   - Affected files:
+     - PPTXDocument.swift
+     - XMLParser.swift
+     - Models/Slide.swift
+     - Models/PresentationMetadata.swift
+     - MetadataXMLParser.swift
+     - SlideRelationshipsParser.swift
+
+### Build System Fixes
+1. **Case Sensitivity Fix**
+   - Fixed directory name from `sources` to `Sources`
+   - Resolved "Cannot find 'SlideXMLParser' in scope" errors
+   - Cleaned Xcode DerivedData for fresh builds
+
+2. **Platform Requirements Update**
+   - Updated to iOS 16+ and macOS 13+
+   - Ensures compatibility with latest Swift features
+
+### Sample Apps Enhancement
+1. **macOS App Improvements**
+   - Fixed coordinate system issues for macOS
+   - Added proper text flipping for Core Text
+   - Fixed slide selection synchronization
+   - Added debug logging for troubleshooting
+
+2. **iOS App Updates**
+   - Updated deployment target to iOS 16
+   - Improved rendering performance

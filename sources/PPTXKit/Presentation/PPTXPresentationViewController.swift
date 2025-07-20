@@ -38,7 +38,9 @@ public class PPTXPresentationViewController: UIViewController {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        self.manager = PPTXManager()
+        super.init(coder: coder)
+        manager.delegate = self
     }
     
     // MARK: - Lifecycle
@@ -294,7 +296,9 @@ public class PPTXThumbnailViewController: UICollectionViewController {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        self.manager = PPTXManager()
+        super.init(coder: coder)
+        manager.delegate = self
     }
     
     public override func viewDidLoad() {
@@ -342,7 +346,8 @@ public class PPTXThumbnailViewController: UICollectionViewController {
         }
         
         required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
+            super.init(coder: coder)
+            setupUI()
         }
         
         private func setupUI() {
