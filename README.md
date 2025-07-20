@@ -13,6 +13,7 @@ PPTX Analyzer provides both a command-line interface and a Swift library (PPTXKi
 - 🔍 **Detailed Slide Info** - Extract text, shapes, and relationships from individual slides
 - 📄 **Presentation Metadata** - Access title, author, creation date, and more
 - 🎨 **Slide Rendering** - Render slides as native iOS/macOS views or images
+- 🎯 **Presentation Management** - High-level API for navigation and state management
 - 🚀 **Fast & Efficient** - On-demand parsing for optimal performance
 - 🔧 **Dual Interface** - Use as CLI tool or Swift library
 - 📱 **Cross-Platform** - Supports iOS 14+ and macOS 12+
@@ -94,6 +95,36 @@ if let slide = try document.getSlide(at: 1) {
 // Get metadata
 let metadata = try document.getMetadata()
 print("Author: \(metadata.author ?? "Unknown")")
+```
+
+### Presentation Management
+
+```swift
+import PPTXKit
+import SwiftUI
+
+// Create presentation manager
+let manager = PPTXManager()
+try manager.loadPresentation(from: "presentation.pptx")
+
+// Navigate slides
+manager.goToNext()
+manager.goToSlide(at: 5)
+
+// SwiftUI presentation view
+struct ContentView: View {
+    @StateObject private var manager = PPTXManager()
+    
+    var body: some View {
+        PPTXPresentationView(manager: manager)
+            .navigationControlsVisible(true)
+            .renderingQuality(.high)
+    }
+}
+
+// UIKit presentation controller
+let presentationVC = PPTXPresentationViewController(manager: manager)
+present(presentationVC, animated: true)
 ```
 
 ### Rendering Slides

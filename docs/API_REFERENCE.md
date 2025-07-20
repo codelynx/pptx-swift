@@ -230,6 +230,100 @@ PPTXKit is not thread-safe. Each `PPTXDocument` instance should be used from a s
 - Large presentations may consume significant memory
 - Slide content is parsed on-demand when accessing individual slides
 
+## Presentation Management API
+
+### PPTXManager
+
+A high-level manager for PPTX presentations providing navigation and state management.
+
+#### Properties
+
+```swift
+public private(set) var currentSlideIndex: Int    // Current slide (1-based)
+public private(set) var slideCount: Int           // Total slides
+public private(set) var metadata: PresentationMetadata?  // Presentation metadata
+public private(set) var isLoading: Bool          // Loading state
+public private(set) var error: Error?            // Last error
+public var currentSlide: Slide?                  // Current slide
+public var canGoPrevious: Bool                   // Can navigate back
+public var canGoNext: Bool                       // Can navigate forward
+public var progress: Double                      // Progress (0.0-1.0)
+public weak var delegate: PPTXManagerDelegate?   // Navigation delegate
+```
+
+#### Methods
+
+```swift
+// Loading
+public func loadPresentation(from filePath: String) throws
+
+// Navigation
+public func goToPrevious() -> Bool
+public func goToNext() -> Bool
+public func goToSlide(at index: Int) -> Bool
+public func goToSlide(withId slideId: String) -> Bool
+public func goToFirst() -> Bool
+public func goToLast() -> Bool
+
+// Slide access
+public func slide(at index: Int) -> Slide?
+public func slide(withId slideId: String) -> Slide?
+public func allSlides() -> [Slide]
+
+// Search
+public func searchSlides(containing text: String) -> [Slide]
+
+// View creation
+public func createSlideView(frame: CGRect = .zero) -> PPTXSlideView?
+```
+
+### PPTXPresentationView
+
+A complete SwiftUI presentation view with navigation controls.
+
+```swift
+PPTXPresentationView(manager: manager)
+    .navigationControlsVisible(true)
+    .slideCounterVisible(true)
+    .progressBarVisible(true)
+    .renderingQuality(.high)
+    .backgroundColor(.black)
+    .onSlideChange { index in
+        print("Moved to slide \(index)")
+    }
+```
+
+### PPTXThumbnailGridView
+
+A SwiftUI grid view showing all slides as thumbnails.
+
+```swift
+PPTXThumbnailGridView(manager: manager)
+```
+
+### PPTXPresentationViewController
+
+A UIViewController for presenting slides (iOS).
+
+```swift
+let manager = PPTXManager()
+let viewController = PPTXPresentationViewController(manager: manager)
+viewController.showNavigationControls = true
+viewController.renderingQuality = .high
+```
+
+### PPTXManagerDelegate
+
+Protocol for receiving navigation events.
+
+```swift
+public protocol PPTXManagerDelegate: AnyObject {
+    func pptxManager(_ manager: PPTXManager, didLoadPresentationWithSlideCount count: Int)
+    func pptxManager(_ manager: PPTXManager, didNavigateFrom oldIndex: Int, to newIndex: Int)
+    func pptxManager(_ manager: PPTXManager, didEncounterError error: Error)
+}
+```
+
 ## Rendering API
 
 ### PPTXSlideView
@@ -311,6 +405,118 @@ public enum RenderingQuality {
     case low       // Fast rendering, minimal effects
     case balanced  // Good quality/performance balance
     case high      // Best quality, all effects
+}
+```
+
+## Presentation Management Examples
+
+### Basic Navigation
+
+```swift
+import PPTXKit
+
+// Create and load presentation
+let manager = PPTXManager()
+try manager.loadPresentation(from: "presentation.pptx")
+
+// Navigate
+manager.goToNext()
+manager.goToPrevious()
+manager.goToSlide(at: 5)
+manager.goToFirst()
+manager.goToLast()
+
+// Check state
+print("Current slide: \(manager.currentSlideIndex) of \(manager.slideCount)")
+print("Progress: \(manager.progress * 100)%")
+```
+
+### SwiftUI Integration
+
+```swift
+import SwiftUI
+import PPTXKit
+
+struct PresentationView: View {
+    @StateObject private var manager = PPTXManager()
+    
+    var body: some View {
+        PPTXPresentationView(manager: manager)
+            .navigationControlsVisible(true)
+            .renderingQuality(.high)
+            .onSlideChange { index in
+                print("Now showing slide \(index)")
+            }
+            .onAppear {
+                try? manager.loadPresentation(from: "presentation.pptx")
+            }
+    }
+}
+```
+
+### UIKit Integration
+
+```swift
+import UIKit
+import PPTXKit
+
+class ViewController: UIViewController {
+    let manager = PPTXManager()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Create presentation view controller
+        let presentationVC = PPTXPresentationViewController(manager: manager)
+        
+        // Add as child
+        addChild(presentationVC)
+        view.addSubview(presentationVC.view)
+        presentationVC.view.frame = view.bounds
+        presentationVC.didMove(toParent: self)
+        
+        // Load presentation
+        try? manager.loadPresentation(from: "presentation.pptx")
+    }
+}
+```
+
+### Search and Navigation
+
+```swift
+// Search for slides
+let results = manager.searchSlides(containing: "revenue")
+for slide in results {
+    print("Found in slide \(slide.index): \(slide.title ?? "")")
+}
+
+// Navigate to first result
+if let firstResult = results.first {
+    manager.goToSlide(withId: firstResult.id)
+}
+```
+
+### Delegate Pattern
+
+```swift
+class PresentationController: PPTXManagerDelegate {
+    let manager = PPTXManager()
+    
+    init() {
+        manager.delegate = self
+    }
+    
+    func pptxManager(_ manager: PPTXManager, didLoadPresentationWithSlideCount count: Int) {
+        print("Loaded presentation with \(count) slides")
+    }
+    
+    func pptxManager(_ manager: PPTXManager, didNavigateFrom oldIndex: Int, to newIndex: Int) {
+        print("Navigated from slide \(oldIndex) to \(newIndex)")
+    }
+    
+    func pptxManager(_ manager: PPTXManager, didEncounterError error: Error) {
+        print("Error: \(error)")
+    }
 }
 ```
 
