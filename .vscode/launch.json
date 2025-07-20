@@ -1,0 +1,22 @@
+{
+	"configurations": [
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:pptx-swift}",
+			"name": "Debug pptx-analyzer",
+			"program": "${workspaceFolder:pptx-swift}/.build/debug/pptx-analyzer",
+			"preLaunchTask": "swift: Build Debug pptx-analyzer"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:pptx-swift}",
+			"name": "Release pptx-analyzer",
+			"program": "${workspaceFolder:pptx-swift}/.build/release/pptx-analyzer",
+			"preLaunchTask": "swift: Build Release pptx-analyzer"
+		}
+	]
+}
