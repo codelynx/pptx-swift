@@ -12,7 +12,8 @@ struct PPTXAnalyzer: ParsableCommand {
             List.self,
             Info.self,
             Summary.self,
-            TestImages.self
+            TestImages.self,
+            RenderCommand.self
         ],
         defaultSubcommand: nil
     )

@@ -6,13 +6,9 @@ class SlideRelationshipsParser: NSObject, XMLParserDelegate {
 	
 	func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
 		if elementName == "Relationship" {
-			print("[SlideRelationshipsParser] Found Relationship element")
-			print("[SlideRelationshipsParser] Attributes: \(attributeDict)")
-			
 			guard let id = attributeDict["Id"],
 				  let target = attributeDict["Target"],
 				  let type = attributeDict["Type"] else {
-				print("[SlideRelationshipsParser] Missing required attributes")
 				return
 			}
 			
@@ -32,7 +28,6 @@ class SlideRelationshipsParser: NSObject, XMLParserDelegate {
 			
 			let relationship = Relationship(id: id, type: relType, target: target)
 			relationships.append(relationship)
-			print("[SlideRelationshipsParser] Added relationship: \(id) -> \(target) (type: \(relType))")
 		}
 	}
 }

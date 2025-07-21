@@ -262,26 +262,34 @@ PPTXKit is perfect for:
 
 Complete sample apps demonstrate real-world usage:
 
-- **iOS Viewer** (`SampleApps/PPTXViewer-iOS/`)
+### Examples (Simple Learning Projects)
+Located in `Examples/` directory:
+- **BasicViewer** - Minimal SwiftUI app showing how to display presentations
+- **CustomRendering** - Advanced rendering and styling examples
+- **ContentExtraction** - Extract text and metadata from presentations
+
+### Apps (Full Applications)
+Located in `Apps/` directory:
+- **iOS Viewer** (`Apps/PPTXViewer-iOS/`)
   - Document browser integration
   - Full presentation navigation
   - Gesture support (swipe between slides)
   - Share and export functionality
 
-- **macOS Viewer** (`SampleApps/PPTXViewer-macOS/`)
+- **macOS Viewer** (`Apps/PPTXViewer-macOS/`)
   - Split view with slide thumbnails
   - Keyboard navigation
   - Full-screen presentation mode
   - Quick Look integration
 
-See [Sample Apps README](SampleApps/README.md) for setup instructions.
+See [Examples README](Examples/README.md) for quick start examples.
 
 ## Documentation
 
-- [API Reference](docs/API_REFERENCE.md) - Complete PPTXKit library documentation
-- [CLI Usage Guide](docs/CLI_USAGE.md) - Detailed command-line interface guide
-- [Architecture](docs/ARCHITECTURE.md) - System design and implementation details
-- [Development Guide](docs/DEVELOPMENT.md) - Contributing and development setup
+- [API Reference](Documentation/API/) - Complete PPTXKit library documentation
+- [User Guides](Documentation/Guides/) - Installation, usage, and development guides
+- [CLI Documentation](Documentation/CLI/) - Command-line tool documentation
+- [Migration Guide](MIGRATION.md) - Guide for migrating to the new structure
 
 ## Architecture
 

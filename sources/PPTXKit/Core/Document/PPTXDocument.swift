@@ -223,9 +223,7 @@ public class PPTXDocument {
 		// Check for slide relationships (images, etc.)
 		var slideRelationships: [Relationship] = []
 		let slideRelsPath = "ppt/slides/_rels/\(slide.id).xml.rels"
-		print("[PPTXDocument] Looking for relationships at: \(slideRelsPath)")
 		if let relsEntry = archive[slideRelsPath] {
-			print("[PPTXDocument] Found relationships file")
 			var relsData = Data()
 			do {
 				_ = try archive.extract(relsEntry) { data in
@@ -239,16 +237,9 @@ public class PPTXDocument {
 				_ = relsParser.parse()
 				
 				slideRelationships = relsDelegate.relationships
-				print("[PPTXDocument] Loaded \(slideRelationships.count) relationships")
-				for rel in slideRelationships {
-					print("[PPTXDocument]   - \(rel.id): \(rel.target) (\(rel.type))")
-				}
 			} catch {
 				// Relationships are optional
-				print("[PPTXDocument] Error loading relationships: \(error)")
 			}
-		} else {
-			print("[PPTXDocument] No relationships file found")
 		}
 		
 		// TODO: Get layout type from slide layout

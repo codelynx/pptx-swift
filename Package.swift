@@ -4,21 +4,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "PPTXAnalyzer",
+    name: "PPTXKit",
     platforms: [
         .macOS(.v13),
         .iOS(.v16)
     ],
     products: [
-        // Executable CLI tool
-        .executable(
-            name: "pptx-analyzer",
-            targets: ["PPTXAnalyzerCLI"]
-        ),
-        // Library for PPTX parsing functionality
+        // Library for PPTX parsing and rendering
         .library(
             name: "PPTXKit",
             targets: ["PPTXKit"]
+        ),
+        // CLI tool for testing and analysis
+        .executable(
+            name: "pptx-analyzer",
+            targets: ["PPTXAnalyzerCLI"]
         )
     ],
     dependencies: [

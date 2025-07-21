@@ -141,7 +141,7 @@
             );
             mainGroup = 8115FBC6B9DA470BAF31F94C30353EE6;
             packageReferences = (
-                15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */,
+                15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference ".." */,
             );
             productRefGroup = 8115FBC6B9DA470BAF31F94CPRODUCTS /* Products */;
             projectDirPath = "";
@@ -328,7 +328,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-        15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */ = {
+        15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference ".." */ = {
             isa = XCLocalSwiftPackageReference;
             relativePath = ..;
         };
@@ -337,12 +337,12 @@
 /* Begin XCSwiftPackageProductDependency section */
         B820BD2B54BE4177AF143D02PRODUCT /* PPTXKit */ = {
             isa = XCSwiftPackageProductDependency;
-            package = 15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */;
+            package = 15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference ".." */;
             productName = PPTXKit;
         };
         478BA3BEE4D14C60B560FC18PRODUCT /* PPTXKit */ = {
             isa = XCSwiftPackageProductDependency;
-            package = 15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference "../" */;
+            package = 15123C3B9D3C417AA6E993CC00EA3B41 /* XCLocalSwiftPackageReference ".." */;
             productName = PPTXKit;
         };
 /* End XCSwiftPackageProductDependency section */

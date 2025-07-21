@@ -66,6 +66,13 @@ public class ImageRenderer {
         context.draw(image, in: drawRect)
         
         context.restoreGState()
+        
+        // Draw border around the image (after restoring to normal coordinate system)
+        context.saveGState()
+        context.setStrokeColor(CGColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1))
+        context.setLineWidth(1)
+        context.stroke(drawRect)
+        context.restoreGState()
     }
     
     private func renderPlaceholder(text: String, in frame: CGRect, context: CGContext) {
@@ -118,8 +125,6 @@ extension ImageRenderer {
             throw RenderingError.missingResource("No archive provided")
         }
         
-        print("[ImageRenderer] Loading image from relationship: \(relationship.target)")
-        
         // Build the full path to the image in the archive
         // Handle relative paths in the relationship target
         let imagePath: String
@@ -127,30 +132,16 @@ extension ImageRenderer {
             // Remove ../ and construct path relative to ppt folder
             let relativePath = String(relationship.target.dropFirst(3))
             imagePath = "ppt/\(relativePath)"
-            print("[ImageRenderer] Resolved relative path '../' to: \(imagePath)")
         } else if relationship.target.hasPrefix("/") {
             // Absolute path
             imagePath = String(relationship.target.dropFirst())
-            print("[ImageRenderer] Using absolute path: \(imagePath)")
         } else {
             // Relative to slides folder
             imagePath = "ppt/slides/\(relationship.target)"
-            print("[ImageRenderer] Resolved relative path to: \(imagePath)")
         }
         
         // Find the entry in the archive
         guard let entry = archive[imagePath] else {
-            print("[ImageRenderer] Image not found in archive at path: \(imagePath)")
-            print("[ImageRenderer] Available entries in archive:")
-            // List some entries for debugging
-            var count = 0
-            for entry in archive {
-                if entry.path.contains("media") || entry.path.contains("image") {
-                    print("[ImageRenderer]   - \(entry.path)")
-                    count += 1
-                    if count > 10 { break }
-                }
-            }
             throw RenderingError.missingResource("Image not found: \(imagePath)")
         }
         

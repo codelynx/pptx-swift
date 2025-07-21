@@ -95,46 +95,69 @@ public class SlideRenderer {
 			let shapes = try parser.parseSlide(data: xmlData)
 			
 			// Convert parsed shapes to render elements
+			// First pass: collect shapes by ID to check for text boxes with backgrounds
+			var shapesByID: [String: SlideXMLParser.ShapeInfo] = [:]
 			for shape in shapes {
+				shapesByID[shape.id] = shape
+			}
+			
+			// Second pass: render elements
+			var processedIDs: Set<String> = []
+			
+			for shape in shapes {
+				// Skip if already processed
+				if processedIDs.contains(shape.id) {
+					continue
+				}
+				
 				switch shape.type {
 				case .textBox(let textBox):
+					// Check if there's a corresponding shape with the same ID (background)
+					let backgroundShape = shapes.first { otherShape in
+						if case .shape = otherShape.type {
+							return otherShape.id == shape.id && otherShape.frame == shape.frame
+						}
+						return false
+					}
+					
+					// If there's a background shape, render it first
+					if let bgShape = backgroundShape, case .shape(let bgShapeData) = bgShape.type {
+						let bgElement = createShapeElement(
+							from: bgShapeData,
+							frame: bgShape.frame,
+							transform: bgShape.transform
+						)
+						elements.append(bgElement)
+						processedIDs.insert(bgShape.id)
+					}
+					
 					// Create text elements from the text box
 					let textElements = createTextElements(from: textBox, frame: shape.frame, transform: shape.transform)
 					elements.append(contentsOf: textElements)
+					processedIDs.insert(shape.id)
 					
 				case .picture(let picture):
 					// Try to load the actual image
 					var imageData: ImageData
 					
-					print("[SlideRenderer] Processing picture with relId: \(picture.imageRelId)")
-					print("[SlideRenderer] Available relationships: \(slide.relationships.map { $0.id })")
-					
 					// Find the relationship for this image
 					if let relationship = slide.relationships.first(where: { $0.id == picture.imageRelId }) {
-						print("[SlideRenderer] Found relationship - target: \(relationship.target), type: \(relationship.type)")
-						
 						// Try to load the image from archive
 						if let archive = archive {
-							print("[SlideRenderer] Archive available, attempting to load image")
 							do {
 								if let cgImage = try imageRenderer.loadImageSync(from: relationship, in: archive) {
-									print("[SlideRenderer] Successfully loaded image")
 									imageData = ImageData(cgImage: cgImage)
 								} else {
-									print("[SlideRenderer] Failed to load image from: \(relationship.target)")
 									imageData = ImageData(placeholder: "Failed to load: \(relationship.target)")
 								}
 							} catch {
-								print("[SlideRenderer] Error loading image: \(error)")
 								// Fall back to placeholder on error
 								imageData = ImageData(placeholder: "Error loading: \(relationship.target)")
 							}
 						} else {
-							print("[SlideRenderer] No archive available for image loading")
 							imageData = ImageData(placeholder: "No archive: \(picture.imageRelId)")
 						}
 					} else {
-						print("[SlideRenderer] Relationship not found for relId: \(picture.imageRelId)")
 						imageData = ImageData(placeholder: "Missing relationship: \(picture.imageRelId)")
 					}
 					
@@ -145,15 +168,20 @@ public class SlideRenderer {
 						transform: shape.transform
 					)
 					elements.append(imageElement)
+					processedIDs.insert(shape.id)
 					
 				case .shape(let shapeData):
-					// Create shape element
-					let shapeElement = createShapeElement(
-						from: shapeData,
-						frame: shape.frame,
-						transform: shape.transform
-					)
-					elements.append(shapeElement)
+					// Skip if this is a background for a text box (already processed)
+					if !processedIDs.contains(shape.id) {
+						// Create shape element
+						let shapeElement = createShapeElement(
+							from: shapeData,
+							frame: shape.frame,
+							transform: shape.transform
+						)
+						elements.append(shapeElement)
+						processedIDs.insert(shape.id)
+					}
 				}
 			}
 		} else {
@@ -273,29 +301,55 @@ public class SlideRenderer {
 	}
 	
 	/// Create shape element from parsed shape data
-	private func createShapeElement(from shapeData: SlideXMLParser.ShapeData, frame: CGRect, transform: CGAffineTransform) -> RenderElement {
+	private func createShapeElement(from shapeProps: SlideXMLParser.ShapeProperties, frame: CGRect, transform: CGAffineTransform) -> RenderElement {
 		// Determine shape type
 		let shapeType: ShapeData.ShapeType
-		switch shapeData.type {
+		switch shapeProps.geometryType {
 		case "rect", "rectangle":
 			shapeType = .rectangle
 		case "ellipse", "circle":
 			shapeType = .ellipse
+		case "roundRect":
+			shapeType = .rectangle // TODO: Add rounded rectangle support
 		default:
 			// Default to rectangle for unknown shapes
 			shapeType = .rectangle
 		}
 		
 		// Create fill style
-		let fillStyle: FillStyle? = shapeData.fillColor.flatMap { colorHex in
-			parseHexColor(colorHex).map { FillStyle.solid($0) }
+		let fillStyle: FillStyle?
+		if let gradientFill = shapeProps.gradientFill, !gradientFill.colors.isEmpty {
+			// Create gradient fill
+			let colors = gradientFill.colors.compactMap { colorInfo -> CGColor? in
+				parseHexColor(colorInfo.color)
+			}
+			let locations = gradientFill.colors.map { $0.position }
+			
+			if !colors.isEmpty {
+				fillStyle = .gradient(GradientFill(
+					colors: colors,
+					locations: locations,
+					startPoint: CGPoint(x: 0, y: 0),
+					endPoint: CGPoint(x: 1, y: 1)
+				))
+			} else {
+				fillStyle = nil
+			}
+		} else if let fillColor = shapeProps.fillColor {
+			// Solid fill
+			fillStyle = parseHexColor(fillColor).map { FillStyle.solid($0) }
+		} else {
+			fillStyle = nil
 		}
 		
 		// Create stroke style
-		let strokeStyle: StrokeStyle? = shapeData.strokeColor.flatMap { colorHex in
-			parseHexColor(colorHex).map { color in
-				StrokeStyle(color: color, width: shapeData.strokeWidth ?? 1.0)
-			}
+		let strokeStyle: StrokeStyle?
+		if shapeProps.hasStroke {
+			// Default stroke if no color specified
+			let strokeColor = shapeProps.strokeColor.flatMap { parseHexColor($0) } ?? CGColor(red: 0, green: 0, blue: 0, alpha: 1)
+			strokeStyle = StrokeStyle(color: strokeColor, width: shapeProps.strokeWidth ?? 1.0)
+		} else {
+			strokeStyle = nil
 		}
 		
 		// Create shape data
