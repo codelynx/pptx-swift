@@ -8,24 +8,22 @@
 
 /* Begin PBXBuildFile section */
         43D7714097804EF0A4565F9624537756 /* PPTXViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */; };
-        91551AEB3EC84ADBB96DCB33F10BA213 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */; };
+        A6B7C8D9E0F123456789012345GHIJKL /* UnifiedDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9012345678901234EFGHI /* UnifiedDocumentView.swift */; };
+        B7C8D9E0F1A234567890123456HIJKLM /* SharedViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7B8C9D0123456789012345FGHIJ /* SharedViews.swift */; };
         B820BD2B54BE4177AF143D021DC63027 /* PPTXKit in Frameworks */ = {isa = PBXBuildFile; productRef = B820BD2B54BE4177AF143D02PRODUCT /* PPTXKit */; };
         478BA3BEE4D14C60B560FC18B089A35E /* PPTXKit in Frameworks */ = {isa = PBXBuildFile; productRef = 478BA3BEE4D14C60B560FC18PRODUCT /* PPTXKit */; };
         C2D3E4F5A6B7890123456789012CDEFG /* PPTXDocumentWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6789012345678901ABCDE /* PPTXDocumentWrapper.swift */; };
-        D3E4F5A6B7C8901234567890123DEFGH /* DocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A6978012345678901FEDCB /* DocumentView.swift */; };
-        E4F5A6B7C8D9012345678901234EFGHI /* MacOSViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7890123456789012BCDEF /* MacOSViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
         0EC3FF6A92B440B08D2ADD64B74248A8 /* PPTXViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PPTXViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
         7C16093DEE7349EE934F8DE5A581098A /* PPTXViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PPTXViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
         7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPTXViewerApp.swift; sourceTree = "<group>"; };
-        12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+        D4E5F6A7B8C9012345678901234EFGHI /* UnifiedDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedDocumentView.swift; sourceTree = "<group>"; };
+        E5F6A7B8C9D0123456789012345FGHIJ /* SharedViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedViews.swift; sourceTree = "<group>"; };
         ABCD1234567890EF1234567890ABCDEF /* Info-iOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-iOS.plist"; sourceTree = "<group>"; };
         DCBA0987654321FE0987654321DCBA00 /* Info-macOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-macOS.plist"; sourceTree = "<group>"; };
         A1B2C3D4E5F6789012345678901ABCDE /* PPTXDocumentWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPTXDocumentWrapper.swift; sourceTree = "<group>"; };
-        F1E2D3C4B5A6978012345678901FEDCB /* DocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentView.swift; sourceTree = "<group>"; };
-        B2C3D4E5F6A7890123456789012BCDEF /* MacOSViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,10 +67,9 @@
             isa = PBXGroup;
             children = (
                 7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */,
-                12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */,
                 A1B2C3D4E5F6789012345678901ABCDE /* PPTXDocumentWrapper.swift */,
-                F1E2D3C4B5A6978012345678901FEDCB /* DocumentView.swift */,
-                B2C3D4E5F6A7890123456789012BCDEF /* MacOSViews.swift */,
+                D4E5F6A7B8C9012345678901234EFGHI /* UnifiedDocumentView.swift */,
+                E5F6A7B8C9D0123456789012345FGHIJ /* SharedViews.swift */,
                 ABCD1234567890EF1234567890ABCDEF /* Info-iOS.plist */,
                 DCBA0987654321FE0987654321DCBA00 /* Info-macOS.plist */,
             );
@@ -158,7 +155,9 @@
             buildActionMask = 2147483647;
             files = (
                 43D7714097804EF0A4565F9624537756 /* PPTXViewerApp.swift in Sources */,
-                91551AEB3EC84ADBB96DCB33F10BA213 /* ContentView.swift in Sources */,
+                A6B7C8D9E0F123456789012345GHIJKL /* UnifiedDocumentView.swift in Sources */,
+                B7C8D9E0F1A234567890123456HIJKLM /* SharedViews.swift in Sources */,
+                C2D3E4F5A6B7890123456789012CDEFG /* PPTXDocumentWrapper.swift in Sources */,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
@@ -167,10 +166,9 @@
             buildActionMask = 2147483647;
             files = (
                 43D7714097804EF0A4565F9624537756 /* PPTXViewerApp.swift in Sources */,
-                91551AEB3EC84ADBB96DCB33F10BA213 /* ContentView.swift in Sources */,
+                A6B7C8D9E0F123456789012345GHIJKL /* UnifiedDocumentView.swift in Sources */,
+                B7C8D9E0F1A234567890123456HIJKLM /* SharedViews.swift in Sources */,
                 C2D3E4F5A6B7890123456789012CDEFG /* PPTXDocumentWrapper.swift in Sources */,
-                D3E4F5A6B7C8901234567890123DEFGH /* DocumentView.swift in Sources */,
-                E4F5A6B7C8D9012345678901234EFGHI /* MacOSViews.swift in Sources */,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };

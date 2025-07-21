@@ -2,19 +2,22 @@ import SwiftUI
 import UniformTypeIdentifiers
 import PPTXKit
 
-#if os(macOS)
-/// Document wrapper for PowerPoint files in macOS document-based app
+/// Document wrapper for PowerPoint files in document-based app
 struct PPTXDocumentWrapper: FileDocument {
-	// Document type that can be opened
-	static var readableContentTypes: [UTType] { [.pptx] }
+	// Document types that can be opened
+	static var readableContentTypes: [UTType] { 
+		// Define multiple UTTypes for PPTX files
+		if let pptxType = UTType(filenameExtension: "pptx") {
+			return [pptxType, .pptx]
+		}
+		return [.pptx]
+	}
+	
+	// We don't support creating new documents, only reading
+	static var writableContentTypes: [UTType] { [] }
 	
 	// The PPTXManager that handles the document
 	var manager: PPTXManager
-	
-	// Initialize with a new empty document
-	init() {
-		self.manager = PPTXManager()
-	}
 	
 	// Initialize by reading from a file
 	init(configuration: ReadConfiguration) throws {
@@ -46,4 +49,3 @@ extension UTType {
 		UTType(importedAs: "com.microsoft.powerpoint.pptx")
 	}
 }
-#endif

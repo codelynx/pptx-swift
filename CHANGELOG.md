@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed incorrect fill colors when shapes have both line and fill references
   - Added `isInFillRef` flag to track parsing context within style elements
   - Now correctly distinguishes between `<a:lnRef>` (line) and `<a:fillRef>` (fill) color references
+- Fixed iOS rendering issue where slides appeared upside down
+  - Applied coordinate system flip to both iOS and macOS platforms in `SlideRenderer`
+  - Both UIKit and AppKit expect origin at top-left, while Core Graphics uses bottom-left
   - Fixed slide 11 rendering issue where green line color was incorrectly applied as fill color
   - Properly handles "lt1" (light 1) theme color as transparent/white fill
 

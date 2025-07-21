@@ -51,11 +51,10 @@ public class SlideRenderer {
 			throw RenderingError.contextCreationFailed
 		}
 		
-		// Flip coordinate system for macOS (origin at top-left)
-		#if os(macOS)
+		// Flip coordinate system for both iOS and macOS
+		// UIKit and AppKit both expect origin at top-left, while Core Graphics has origin at bottom-left
 		cgContext.translateBy(x: 0, y: CGFloat(pixelHeight))
 		cgContext.scaleBy(x: 1, y: -1)
-		#endif
 		
 		// Apply scale for retina
 		cgContext.scaleBy(x: context.scale, y: context.scale)

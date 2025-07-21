@@ -91,3 +91,24 @@ Contains macOS-specific view implementations:
 - Existing iOS functionality preserved
 - macOS app now more Mac-like with document paradigm
 - No breaking changes to PPTXKit library usage
+
+## Post-Unification Updates
+
+### Document-Based Architecture for iOS
+- iOS app now also uses DocumentGroup for consistency
+- Supports opening PPTX files from Files app
+- Added UTImportedTypeDeclarations for PPTX file type
+
+### Unified Navigation with NavigationStack
+- Created `UnifiedDocumentView.swift` using NavigationStack
+- Platform-adaptive layouts:
+  - macOS: Fixed two-column layout
+  - iPad: Collapsible sidebar
+  - iPhone: Stack navigation
+- Created `SharedViews.swift` with views shared between platforms
+- Removed platform-specific document views
+
+### Bug Fixes
+- Fixed iOS rendering issue where slides appeared upside down
+  - Applied coordinate system flip to both platforms in SlideRenderer
+  - Both UIKit and AppKit expect origin at top-left

@@ -3,14 +3,8 @@ import SwiftUI
 @main
 struct PPTXViewerApp: App {
 	var body: some Scene {
-		#if os(iOS)
-		WindowGroup {
-			ContentView()
+		DocumentGroup(viewing: PPTXDocumentWrapper.self) { file in
+			UnifiedDocumentView(document: file.$document)
 		}
-		#else
-		DocumentGroup(newDocument: PPTXDocumentWrapper()) { file in
-			DocumentView(document: file.$document)
-		}
-		#endif
 	}
 }

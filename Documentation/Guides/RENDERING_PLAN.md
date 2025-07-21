@@ -262,6 +262,7 @@ let fontMap = [
 - **Coordinate Conversion**: EMU to points/pixels
 - **Font Mapping**: Windows to system font mapping
 - **Cross-Platform**: iOS and macOS support
+- **Coordinate System Fix**: Fixed iOS rendering (slides no longer appear upside down)
 
 ### In Progress 🚧
 - **XML Parsing**: Full slide XML structure parsing
