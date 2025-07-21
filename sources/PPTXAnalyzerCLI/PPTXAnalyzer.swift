@@ -11,7 +11,8 @@ struct PPTXAnalyzer: ParsableCommand {
             Count.self,
             List.self,
             Info.self,
-            Summary.self
+            Summary.self,
+            TestImages.self
         ],
         defaultSubcommand: nil
     )

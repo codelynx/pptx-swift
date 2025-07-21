@@ -37,11 +37,6 @@ public class ImageRenderer {
     private func renderImage(_ image: CGImage, in frame: CGRect, context: CGContext) {
         context.saveGState()
         
-        // Flip coordinate system for image
-        context.translateBy(x: 0, y: frame.maxY)
-        context.scaleBy(x: 1, y: -1)
-        context.translateBy(x: 0, y: -frame.minY)
-        
         // Calculate aspect-fit frame
         let imageAspect = CGFloat(image.width) / CGFloat(image.height)
         let frameAspect = frame.width / frame.height
@@ -50,14 +45,22 @@ public class ImageRenderer {
         if imageAspect > frameAspect {
             // Image is wider than frame
             let height = frame.width / imageAspect
-            let y = (frame.height - height) / 2
-            drawRect = CGRect(x: 0, y: y, width: frame.width, height: height)
+            let y = frame.origin.y + (frame.height - height) / 2
+            drawRect = CGRect(x: frame.origin.x, y: y, width: frame.width, height: height)
         } else {
             // Image is taller than frame
             let width = frame.height * imageAspect
-            let x = (frame.width - width) / 2
-            drawRect = CGRect(x: x, y: 0, width: width, height: frame.height)
+            let x = frame.origin.x + (frame.width - width) / 2
+            drawRect = CGRect(x: x, y: frame.origin.y, width: width, height: frame.height)
         }
+        
+        // Flip the coordinate system for the image
+        // Move to the bottom of the image rect
+        context.translateBy(x: 0, y: drawRect.origin.y + drawRect.height)
+        // Flip vertically
+        context.scaleBy(x: 1, y: -1)
+        // Move back
+        context.translateBy(x: 0, y: -drawRect.origin.y)
         
         // Draw image
         context.draw(image, in: drawRect)
@@ -109,14 +112,98 @@ public class ImageRenderer {
 // MARK: - Image Loading
 
 extension ImageRenderer {
-    /// Load image from slide relationship
+    /// Load image from slide relationship (synchronous version)
+    public func loadImageSync(from relationship: Relationship, in archive: Archive?) throws -> CGImage? {
+        guard let archive = archive else {
+            throw RenderingError.missingResource("No archive provided")
+        }
+        
+        print("[ImageRenderer] Loading image from relationship: \(relationship.target)")
+        
+        // Build the full path to the image in the archive
+        // Handle relative paths in the relationship target
+        let imagePath: String
+        if relationship.target.hasPrefix("../") {
+            // Remove ../ and construct path relative to ppt folder
+            let relativePath = String(relationship.target.dropFirst(3))
+            imagePath = "ppt/\(relativePath)"
+            print("[ImageRenderer] Resolved relative path '../' to: \(imagePath)")
+        } else if relationship.target.hasPrefix("/") {
+            // Absolute path
+            imagePath = String(relationship.target.dropFirst())
+            print("[ImageRenderer] Using absolute path: \(imagePath)")
+        } else {
+            // Relative to slides folder
+            imagePath = "ppt/slides/\(relationship.target)"
+            print("[ImageRenderer] Resolved relative path to: \(imagePath)")
+        }
+        
+        // Find the entry in the archive
+        guard let entry = archive[imagePath] else {
+            print("[ImageRenderer] Image not found in archive at path: \(imagePath)")
+            print("[ImageRenderer] Available entries in archive:")
+            // List some entries for debugging
+            var count = 0
+            for entry in archive {
+                if entry.path.contains("media") || entry.path.contains("image") {
+                    print("[ImageRenderer]   - \(entry.path)")
+                    count += 1
+                    if count > 10 { break }
+                }
+            }
+            throw RenderingError.missingResource("Image not found: \(imagePath)")
+        }
+        
+        // Extract the image data
+        var imageData = Data()
+        do {
+            _ = try archive.extract(entry) { data in
+                imageData.append(data)
+            }
+        } catch {
+            throw RenderingError.missingResource("Failed to extract image: \(error)")
+        }
+        
+        // Create CGImage from data
+        #if canImport(UIKit)
+        guard let uiImage = UIImage(data: imageData),
+              let cgImage = uiImage.cgImage else {
+            throw RenderingError.missingResource("Failed to create image from data")
+        }
+        return cgImage
+        #elseif canImport(AppKit)
+        guard let nsImage = NSImage(data: imageData) else {
+            throw RenderingError.missingResource("Failed to create NSImage from data")
+        }
+        
+        // Convert NSImage to CGImage
+        guard let cgImage = nsImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            throw RenderingError.missingResource("Failed to get CGImage from NSImage")
+        }
+        return cgImage
+        #endif
+    }
+    
+    /// Load image from slide relationship (async version)
     public func loadImage(from relationship: Relationship, in archive: Archive?) async throws -> CGImage? {
         guard let archive = archive else {
             throw RenderingError.missingResource("No archive provided")
         }
         
         // Build the full path to the image in the archive
-        let imagePath = "ppt/\(relationship.target)"
+        // Handle relative paths in the relationship target
+        let imagePath: String
+        if relationship.target.hasPrefix("../") {
+            // Remove ../ and construct path relative to ppt folder
+            let relativePath = String(relationship.target.dropFirst(3))
+            imagePath = "ppt/\(relativePath)"
+        } else if relationship.target.hasPrefix("/") {
+            // Absolute path
+            imagePath = String(relationship.target.dropFirst())
+        } else {
+            // Relative to slides folder
+            imagePath = "ppt/slides/\(relationship.target)"
+        }
         
         // Find the entry in the archive
         guard let entry = archive[imagePath] else {

@@ -108,10 +108,13 @@ public class SlideXMLParser: NSObject {
 	private var currentText = ""
 	private var currentRunProperties: RunProperties?
 	private var currentParagraphProperties: ParagraphProperties?
+	private var currentPictureRelId: String?
+	private var currentShapeType: String = ""
 	private var isInShape = false
 	private var isInTextBody = false
 	private var isInParagraph = false
 	private var isInRun = false
+	private var isInPicture = false
 	
 	// EMU to points conversion (1 point = 12700 EMUs)
 	private let emuPerPoint: CGFloat = 12700
@@ -146,10 +149,13 @@ public class SlideXMLParser: NSObject {
 		currentText = ""
 		currentRunProperties = nil
 		currentParagraphProperties = nil
+		currentPictureRelId = nil
+		currentShapeType = ""
 		isInShape = false
 		isInTextBody = false
 		isInParagraph = false
 		isInRun = false
+		isInPicture = false
 	}
 	
 	private func emuToPoints(_ emu: Int) -> CGFloat {
@@ -187,6 +193,14 @@ extension SlideXMLParser: XMLParserDelegate {
 			currentShapeId = "shape\(shapes.count + 1)"
 			currentFrame = .zero
 			currentTransform = .identity
+			
+			// Track shape type
+			if elementName == "p:pic" {
+				isInPicture = true
+				currentShapeType = "picture"
+			} else if elementName == "p:sp" {
+				currentShapeType = "shape"
+			}
 		}
 		
 		// Non-visual properties (contains shape ID)
@@ -363,6 +377,13 @@ extension SlideXMLParser: XMLParserDelegate {
 		if elementName == "a:t" {
 			currentText = ""
 		}
+		
+		// Picture blip (image reference)
+		if elementName == "a:blip" && isInPicture {
+			if let embed = attributeDict["r:embed"] {
+				currentPictureRelId = embed
+			}
+		}
 	}
 	
 	public func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -437,7 +458,24 @@ extension SlideXMLParser: XMLParserDelegate {
 		
 		// End of shape
 		if elementName == "p:sp" || elementName == "p:pic" || elementName == "p:graphicFrame" {
+			// Handle picture elements
+			if elementName == "p:pic" && isInPicture {
+				if let relId = currentPictureRelId {
+					let picture = PictureInfo(imageRelId: relId, frame: currentFrame)
+					let shape = ShapeInfo(
+						id: currentShapeId,
+						frame: currentFrame,
+						transform: currentTransform,
+						type: .picture(picture)
+					)
+					shapes.append(shape)
+				}
+				isInPicture = false
+				currentPictureRelId = nil
+			}
+			
 			isInShape = false
+			currentShapeType = ""
 		}
 	}
 }

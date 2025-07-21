@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import ZIPFoundation
 #if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
@@ -12,16 +13,25 @@ public class SlideRenderer {
 	private let shapeRenderer: ShapeRenderer
 	private let textRenderer: TextRenderer
 	private let imageRenderer: ImageRenderer
+	private var archive: Archive?
 	
-	public init(context: RenderingContext) {
+	public init(context: RenderingContext, archive: Archive? = nil) {
 		self.context = context
+		self.archive = archive
 		self.shapeRenderer = ShapeRenderer(context: context)
 		self.textRenderer = TextRenderer(context: context)
 		self.imageRenderer = ImageRenderer(context: context)
 	}
 	
+	/// Set the archive for loading resources
+	public func setArchive(_ archive: Archive?) {
+		self.archive = archive
+	}
+	
 	/// Render a slide to a CGImage
-	public func render(slide: Slide) throws -> CGImage {
+	public func render(slide: Slide, archive: Archive? = nil) throws -> CGImage {
+		// Use provided archive or the one set during init
+		let workingArchive = archive ?? self.archive
 		// Create graphics context
 		let colorSpace = CGColorSpaceCreateDeviceRGB()
 		let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
@@ -56,7 +66,7 @@ public class SlideRenderer {
 		}
 		
 		// Parse and render slide content
-		let renderTree = try buildRenderTree(from: slide)
+		let renderTree = try buildRenderTree(from: slide, archive: workingArchive)
 		try renderElements(renderTree, in: cgContext)
 		
 		// Create final image
@@ -75,7 +85,7 @@ public class SlideRenderer {
 	}
 	
 	/// Build render tree from slide data
-	private func buildRenderTree(from slide: Slide) throws -> [RenderElement] {
+	private func buildRenderTree(from slide: Slide, archive: Archive?) throws -> [RenderElement] {
 		var elements: [RenderElement] = []
 		
 		// Check if we have raw XML data to parse
@@ -93,11 +103,45 @@ public class SlideRenderer {
 					elements.append(contentsOf: textElements)
 					
 				case .picture(let picture):
-					// Create image element with placeholder
+					// Try to load the actual image
+					var imageData: ImageData
+					
+					print("[SlideRenderer] Processing picture with relId: \(picture.imageRelId)")
+					print("[SlideRenderer] Available relationships: \(slide.relationships.map { $0.id })")
+					
+					// Find the relationship for this image
+					if let relationship = slide.relationships.first(where: { $0.id == picture.imageRelId }) {
+						print("[SlideRenderer] Found relationship - target: \(relationship.target), type: \(relationship.type)")
+						
+						// Try to load the image from archive
+						if let archive = archive {
+							print("[SlideRenderer] Archive available, attempting to load image")
+							do {
+								if let cgImage = try imageRenderer.loadImageSync(from: relationship, in: archive) {
+									print("[SlideRenderer] Successfully loaded image")
+									imageData = ImageData(cgImage: cgImage)
+								} else {
+									print("[SlideRenderer] Failed to load image from: \(relationship.target)")
+									imageData = ImageData(placeholder: "Failed to load: \(relationship.target)")
+								}
+							} catch {
+								print("[SlideRenderer] Error loading image: \(error)")
+								// Fall back to placeholder on error
+								imageData = ImageData(placeholder: "Error loading: \(relationship.target)")
+							}
+						} else {
+							print("[SlideRenderer] No archive available for image loading")
+							imageData = ImageData(placeholder: "No archive: \(picture.imageRelId)")
+						}
+					} else {
+						print("[SlideRenderer] Relationship not found for relId: \(picture.imageRelId)")
+						imageData = ImageData(placeholder: "Missing relationship: \(picture.imageRelId)")
+					}
+					
 					let imageElement = RenderElement(
 						type: .image,
 						frame: shape.frame,
-						content: .image(ImageData(placeholder: "Image: \(picture.imageRelId)")),
+						content: .image(imageData),
 						transform: shape.transform
 					)
 					elements.append(imageElement)

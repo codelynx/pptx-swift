@@ -135,7 +135,11 @@ public class PPTXSlideView: UIView {
 		
 		// Render slide
 		do {
-			let cgImage = try renderer.render(slide: slide)
+			// Pass archive if we have access to the document
+			let archive = document?.archive
+			print("[PPTXSlideView] Document available: \(document != nil)")
+			print("[PPTXSlideView] Archive available: \(archive != nil)")
+			let cgImage = try renderer.render(slide: slide, archive: archive)
 			renderedImage = UIImage(cgImage: cgImage)
 			lastError = nil
 		} catch {
@@ -398,7 +402,11 @@ public class PPTXSlideView: NSView {
 		
 		// Render slide
 		do {
-			let cgImage = try renderer.render(slide: slide)
+			// Pass archive if we have access to the document
+			let archive = document?.archive
+			print("[PPTXSlideView] Document available: \(document != nil)")
+			print("[PPTXSlideView] Archive available: \(archive != nil)")
+			let cgImage = try renderer.render(slide: slide, archive: archive)
 			renderedImage = NSImage(cgImage: cgImage, size: bounds.size)
 			lastError = nil
 		} catch {

@@ -45,8 +45,8 @@ public struct PPTXPresentationView: View {
                 backgroundColor
                 
                 // Slide view
-                if manager.currentSlide != nil {
-                    PPTXSlideViewUI(slide: manager.currentSlide!)
+                if manager.currentSlide != nil, let document = manager.document {
+                    PPTXSlideViewUI(document: document, slideIndex: manager.currentSlideIndex)
                         .renderingQuality(renderingQuality)
                         .padding()
                 } else if manager.isLoading {
@@ -218,6 +218,7 @@ public struct PPTXThumbnailGridView: View {
                 ForEach(Array(manager.allSlides().enumerated()), id: \.element.id) { index, slide in
                     ThumbnailView(
                         slide: slide,
+                        document: manager.document,
                         index: index + 1,
                         isSelected: manager.currentSlideIndex == index + 1
                     ) {
@@ -231,6 +232,7 @@ public struct PPTXThumbnailGridView: View {
     
     private struct ThumbnailView: View {
         let slide: Slide
+        let document: PPTXDocument?
         let index: Int
         let isSelected: Bool
         let action: () -> Void
@@ -239,8 +241,15 @@ public struct PPTXThumbnailGridView: View {
             Button(action: action) {
                 VStack(alignment: .leading, spacing: 8) {
                     // Slide preview
-                    PPTXSlideViewUI(slide: slide)
-                        .renderingQuality(.low)
+                    Group {
+                        if let document = document {
+                            PPTXSlideViewUI(document: document, slideIndex: index)
+                                .renderingQuality(.low)
+                        } else {
+                            PPTXSlideViewUI(slide: slide)
+                                .renderingQuality(.low)
+                        }
+                    }
                         .frame(height: 150)
                         .background({
             #if os(iOS)

@@ -13,6 +13,7 @@ PPTX Analyzer provides both a command-line interface and a Swift library (PPTXKi
 - 🔍 **Detailed Slide Info** - Extract text, shapes, and relationships from individual slides
 - 📄 **Presentation Metadata** - Access title, author, creation date, and more
 - 🎨 **Slide Rendering** - Render slides as native iOS/macOS views or images with accurate layout
+- 🖼️ **Image Support** - Full support for rendering images embedded in slides (PNG, JPEG, TIFF)
 - 🎯 **Presentation Management** - High-level API for navigation and state management
 - 🚀 **Fast & Efficient** - On-demand parsing for optimal performance
 - 🔧 **Dual Interface** - Use as CLI tool or Swift library
@@ -150,12 +151,16 @@ let slideView = PPTXSlideView(document: document, slideIndex: 1)
 slideView.renderingQuality = .high
 view.addSubview(slideView)
 
-// Render to image with accurate layout
+// Render to image with accurate layout and image support
 let renderer = SlideRenderer(context: RenderingContext(size: CGSize(width: 1920, height: 1080)))
-let image = try renderer.render(slide: slide)
+// Pass the document's archive for image loading
+let image = try renderer.render(slide: slide, archive: document.archive)
 
-// The renderer now uses SlideXMLParser for accurate text positioning
-// and proper handling of PowerPoint's complex layout structure
+// The renderer now:
+// - Uses SlideXMLParser for accurate text positioning
+// - Properly handles PowerPoint's complex layout structure
+// - Renders embedded images (PNG, JPEG, TIFF) with correct orientation
+// - Preserves aspect ratios for all content
 ```
 
 See [API Reference](docs/API_REFERENCE.md) for complete library documentation.

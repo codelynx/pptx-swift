@@ -448,12 +448,54 @@ PPTXSlideViewUI(document: document, slideIndex: 1)
 
 ### SlideRenderer
 
-Core rendering engine for converting slides to images.
+Core rendering engine for converting slides to images with full support for text, shapes, and images.
 
 ```swift
 public class SlideRenderer {
+    public init(context: RenderingContext, archive: Archive? = nil)
+    
+    // Render with optional archive for image loading
+    public func render(slide: Slide, archive: Archive? = nil) throws -> CGImage
+    
+    // Set archive for resource loading
+    public func setArchive(_ archive: Archive?)
+}
+```
+
+The renderer now supports:
+- Accurate text positioning using SlideXMLParser
+- Image rendering from slide relationships (PNG, JPEG, TIFF)
+- Proper coordinate system handling for different platforms
+- Aspect ratio preservation for all content
+
+### ImageRenderer
+
+Handles rendering of images embedded in slides.
+
+```swift
+public class ImageRenderer {
     public init(context: RenderingContext)
-    public func render(slide: Slide) throws -> CGImage
+    
+    // Load image synchronously
+    public func loadImageSync(from relationship: Relationship, in archive: Archive?) throws -> CGImage?
+    
+    // Load image asynchronously
+    public func loadImage(from relationship: Relationship, in archive: Archive?) async throws -> CGImage?
+    
+    // Apply effects to images
+    public func applyEffects(to image: CGImage, effects: [ImageEffect]) -> CGImage?
+}
+```
+
+### ImageEffect
+
+Effects that can be applied to images during rendering.
+
+```swift
+public enum ImageEffect {
+    case crop(CGRect)
+    case grayscale
+    case brightness(CGFloat)
 }
 ```
 
@@ -571,6 +613,79 @@ for slide in results {
 // Navigate to first result
 if let firstResult = results.first {
     manager.goToSlide(withId: firstResult.id)
+}
+```
+
+## Rendering Examples
+
+### Rendering Slides with Images
+
+```swift
+import PPTXKit
+import CoreGraphics
+
+// Open document
+let document = try PPTXDocument(filePath: "presentation.pptx")
+let slide = try document.getSlide(at: 1)!
+
+// Create rendering context
+let context = RenderingContext(
+    size: CGSize(width: 1920, height: 1080),
+    scale: 2.0,  // Retina quality
+    quality: .high
+)
+
+// Create renderer with archive for image loading
+let renderer = SlideRenderer(context: context)
+
+// Render slide with images
+let cgImage = try renderer.render(slide: slide, archive: document.archive)
+
+// Convert to platform image
+#if os(iOS)
+let image = UIImage(cgImage: cgImage)
+#else
+let image = NSImage(cgImage: cgImage, size: context.size)
+#endif
+```
+
+### Custom Slide View with Image Support
+
+```swift
+// SwiftUI
+struct SlideView: View {
+    let document: PPTXDocument
+    let slideIndex: Int
+    
+    var body: some View {
+        PPTXSlideViewUI(document: document, slideIndex: slideIndex)
+            .renderingQuality(.high)
+            .frame(width: 800, height: 600)
+    }
+}
+
+// UIKit/AppKit
+let slideView = PPTXSlideView(document: document, slideIndex: 1)
+slideView.renderingQuality = .high
+slideView.frame = CGRect(x: 0, y: 0, width: 800, height: 600)
+view.addSubview(slideView)
+```
+
+### Batch Rendering All Slides
+
+```swift
+let document = try PPTXDocument(filePath: "presentation.pptx")
+let context = RenderingContext(size: CGSize(width: 1920, height: 1080))
+let renderer = SlideRenderer(context: context, archive: document.archive)
+
+// Render all slides
+let slides = try document.getSlides()
+var images: [CGImage] = []
+
+for slide in slides {
+    let image = try renderer.render(slide: slide)
+    images.append(image)
+    print("Rendered slide \(slide.index)")
 }
 ```
 

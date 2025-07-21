@@ -181,10 +181,24 @@ class RenderingDemoViewController: UIViewController {
     private func updateSlideView() {
         guard let document = document else { return }
         
-        if let slide = try? document.getSlide(at: currentSlideIndex) {
-            slideView = PPTXSlideView(slide: slide, frame: slideView.frame)
-            slideView.setNeedsRender()
-        }
+        // Create new slide view with document for image support
+        let newSlideView = PPTXSlideView(document: document, slideIndex: currentSlideIndex, frame: slideView.frame)
+        newSlideView.renderingQuality = .high
+        
+        // Replace the old slide view
+        slideView.removeFromSuperview()
+        slideView = newSlideView
+        slideView.translatesAutoresizingMaskIntoConstraints = false
+        slideView.backgroundColor = .systemGray6
+        view.addSubview(slideView)
+        
+        // Re-apply constraints
+        NSLayoutConstraint.activate([
+            slideView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            slideView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            slideView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            slideView.heightAnchor.constraint(equalTo: slideView.widthAnchor, multiplier: 0.75)
+        ])
     }
     
     @objc private func previousSlide() {

@@ -71,9 +71,9 @@ struct ContentView: View {
                         // print("📊 Showing individual slide view for slide \(index)")
                         // Show specific slide
                         VStack {
-                            if let slide = manager.slide(at: index) {
+                            if let slide = manager.slide(at: index), let document = manager.document {
                                 // print("   ✅ Slide loaded: \(slide.title ?? "No title")")
-                                PPTXSlideViewUI(slide: slide)
+                                PPTXSlideViewUI(document: document, slideIndex: index)
                                     .renderingQuality(.high)
                                     .padding()
                                     .id(slide.id)
@@ -210,6 +210,7 @@ struct ThumbnailsMainView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 200, maximum: 300), spacing: 16)], spacing: 16) {
                 ForEach(Array(manager.allSlides().enumerated()), id: \.element.id) { index, slide in
                     ThumbnailView(
+                        manager: manager,
                         slide: slide,
                         index: index + 1,
                         isSelected: manager.currentSlideIndex == index + 1
@@ -225,6 +226,7 @@ struct ThumbnailsMainView: View {
     }
     
     private struct ThumbnailView: View {
+        let manager: PPTXManager
         let slide: Slide
         let index: Int
         let isSelected: Bool
@@ -234,9 +236,17 @@ struct ThumbnailsMainView: View {
             Button(action: action) {
                 VStack(alignment: .leading, spacing: 8) {
                     // Slide preview
-                    PPTXSlideViewUI(slide: slide)
-                        .renderingQuality(.low)
-                        .frame(height: 150)
+                    Group {
+                        if let document = manager.document {
+                            PPTXSlideViewUI(document: document, slideIndex: index)
+                                .renderingQuality(.low)
+                                .frame(height: 150)
+                        } else {
+                            PPTXSlideViewUI(slide: slide)
+                                .renderingQuality(.low)
+                                .frame(height: 150)
+                        }
+                    }
                         .background(Color(NSColor.controlBackgroundColor))
                         .cornerRadius(8)
                         .overlay(

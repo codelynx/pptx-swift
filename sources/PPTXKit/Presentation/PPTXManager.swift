@@ -7,7 +7,7 @@ public class PPTXManager: ObservableObject {
     // MARK: - Properties
     
     /// The loaded PPTX document
-    private var document: PPTXDocument?
+    public private(set) var document: PPTXDocument?
     
     /// All slides in the presentation
     private var slides: [Slide] = []
