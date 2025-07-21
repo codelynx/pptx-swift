@@ -19,6 +19,8 @@ PPTX Analyzer provides both a command-line interface and a Swift library (PPTXKi
 - 🔧 **Dual Interface** - Use as CLI tool or Swift library
 - 📱 **Cross-Platform** - Supports iOS 16+ and macOS 13+
 - 🔤 **Advanced XML Parsing** - Detailed slide content extraction with proper text positioning
+- 🎨 **Shape Rendering** - Accurate shape rendering with fills, gradients, and style-based theming
+- 🖌️ **Theme Support** - Proper handling of PowerPoint theme colors (accent1-6)
 
 ## Installation
 
@@ -65,6 +67,11 @@ pptx-analyzer info --id slide5 presentation.pptx
 
 # Get presentation summary
 pptx-analyzer summary presentation.pptx
+
+# Render slide as image
+pptx-analyzer render presentation.pptx --slide 1 --output slide1.png
+pptx-analyzer render presentation.pptx --slide 2 --output slide2.png --width 1920 --height 1080
+pptx-analyzer render presentation.pptx --slide 3 --output slide3.png --scale 2
 ```
 
 See [CLI Usage Guide](docs/CLI_USAGE.md) for detailed command documentation.

@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Support for text runs with different formatting
   - Proper bullet point and numbering support
   - Picture element parsing for image detection
+  - Style-based shape properties parsing for accurate shape rendering
+- Shape rendering with background fills
+  - Support for solid color fills and gradient fills
+  - Proper shape geometry types (rect, roundRect, ellipse)
+  - Stroke/border rendering support
+  - Background shapes rendered behind text for proper layering
+- CLI render command for exporting slides as images
+  - Added `render` subcommand to pptx-analyzer CLI
+  - Support for custom output dimensions and scaling
+  - PNG format export with high quality rendering
 - Comprehensive logging system for debugging
   - Added detailed logging in `SlideRenderer`, `ImageRenderer`, and `PPTXDocument`
   - Logs help identify issues with archive access and image loading
@@ -31,6 +41,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed thumbnail view to use document for proper archive access
 - Fixed Swift Package Manager case sensitivity issue (renamed 'sources' to 'Sources')
 - Made `SlideXMLParser` class and methods public for proper visibility
+- Fixed style-based fill colors not rendering (e.g., yellow background missing on text boxes)
+  - Added support for parsing `<p:style>` elements with `<a:fillRef>` references
+  - Implemented theme color mapping (accent1-6) to actual RGB values
+  - Fixed issue where non-accent scheme colors were incorrectly resetting fill colors
+- Fixed incorrect fill colors when shapes have both line and fill references
+  - Added `isInFillRef` flag to track parsing context within style elements
+  - Now correctly distinguishes between `<a:lnRef>` (line) and `<a:fillRef>` (fill) color references
+  - Fixed slide 11 rendering issue where green line color was incorrectly applied as fill color
+  - Properly handles "lt1" (light 1) theme color as transparent/white fill
 
 ### Changed
 - Converted code indentation from spaces to tabs throughout the project
@@ -47,6 +66,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 - Archive is now properly passed through the rendering chain:
   - `PPTXDocument` → `PPTXSlideView` → `SlideRenderer` → `ImageRenderer`
+- Style-based fill color parsing in `SlideXMLParser`:
+  ```swift
+  // Parse style fill references - only when inside fillRef
+  if elementName == "a:fillRef" && isInShapeStyle {
+      isInFillRef = true
+  }
+  
+  if elementName == "a:schemeClr" && isInShapeStyle && isInFillRef {
+      switch val {
+      case "accent1": styleFillColor = "5B9BD5" // Blue
+      case "accent4": styleFillColor = "FFC000" // Yellow
+      case "accent6": styleFillColor = "70AD47" // Green
+      case "lt1": styleFillColor = nil // Light 1 - white/transparent
+      default: break // Don't reset for other scheme colors
+      }
+  }
+  ```
 
 ## [1.0.0] - Previous Release
 

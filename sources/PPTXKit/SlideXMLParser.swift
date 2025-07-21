@@ -18,7 +18,7 @@ public class SlideXMLParser: NSObject {
 		public enum ShapeType {
 			case textBox(TextBoxInfo)
 			case picture(PictureInfo)
-			case shape(ShapeData)
+			case shape(ShapeProperties)
 		}
 	}
 	
@@ -89,11 +89,18 @@ public class SlideXMLParser: NSObject {
 		let frame: CGRect
 	}
 	
-	public struct ShapeData {
-		let type: String
+	public struct ShapeProperties {
+		let geometryType: String? // e.g., "rect", "roundRect", "ellipse"
 		let fillColor: String?
+		let gradientFill: GradientFill?
+		let hasStroke: Bool // true if <a:ln/> or <a:ln> exists
 		let strokeColor: String?
 		let strokeWidth: CGFloat?
+	}
+	
+	public struct GradientFill {
+		let colors: [(color: String, position: CGFloat)]
+		let angle: CGFloat?
 	}
 	
 	// Parser state
@@ -110,11 +117,21 @@ public class SlideXMLParser: NSObject {
 	private var currentParagraphProperties: ParagraphProperties?
 	private var currentPictureRelId: String?
 	private var currentShapeType: String = ""
+	private var currentShapeProperties: ShapeProperties?
+	private var currentGeometryType: String?
+	private var currentFillColor: String?
+	private var currentGradientColors: [(color: String, position: CGFloat)] = []
+	private var hasShapeLine = false
 	private var isInShape = false
 	private var isInTextBody = false
 	private var isInParagraph = false
 	private var isInRun = false
 	private var isInPicture = false
+	private var isInShapeProperties = false
+	private var isInGradientFill = false
+	private var isInShapeStyle = false
+	private var isInFillRef = false
+	private var styleFillColor: String?
 	
 	// EMU to points conversion (1 point = 12700 EMUs)
 	private let emuPerPoint: CGFloat = 12700
@@ -156,6 +173,15 @@ public class SlideXMLParser: NSObject {
 		isInParagraph = false
 		isInRun = false
 		isInPicture = false
+		styleFillColor = nil
+		currentFillColor = nil
+		currentGeometryType = nil
+		currentGradientColors = []
+		hasShapeLine = false
+		isInShapeProperties = false
+		isInGradientFill = false
+		isInShapeStyle = false
+		isInFillRef = false
 	}
 	
 	private func emuToPoints(_ emu: Int) -> CGFloat {
@@ -230,6 +256,114 @@ extension SlideXMLParser: XMLParserDelegate {
 				let width = emuToPoints(Int(cx) ?? 0)
 				let height = emuToPoints(Int(cy) ?? 0)
 				currentFrame.size = CGSize(width: width, height: height)
+			}
+		}
+		
+		// Shape properties
+		if elementName == "p:spPr" && isInShape {
+			isInShapeProperties = true
+			hasShapeLine = false // Reset
+			currentFillColor = nil
+			currentGeometryType = nil
+			currentGradientColors = []
+		}
+		
+		// Preset geometry (shape type)
+		if elementName == "a:prstGeom" && isInShapeProperties {
+			currentGeometryType = attributeDict["prst"]
+		}
+		
+		// Line/border element
+		if elementName == "a:ln" && isInShapeProperties {
+			hasShapeLine = true
+		}
+		
+		// Solid fill
+		if elementName == "a:solidFill" && isInShapeProperties {
+			// Will get color in srgbClr
+		}
+		
+		// Gradient fill
+		if elementName == "a:gradFill" && isInShapeProperties {
+			isInGradientFill = true
+		}
+		
+		// Gradient stop
+		if elementName == "a:gs" && isInGradientFill {
+			if let posStr = attributeDict["pos"], let pos = Int(posStr) {
+				// Store position as percentage (0-100)
+				let position = CGFloat(pos) / 100000.0
+				// We'll get the color in the next srgbClr or schemeClr element
+				currentGradientColors.append(("pending", position))
+			}
+		}
+		
+		// Color value for shape fill or gradient
+		if elementName == "a:srgbClr" && isInShapeProperties && !isInRun {
+			if let val = attributeDict["val"] {
+				if isInGradientFill && !currentGradientColors.isEmpty {
+					// Update the last gradient color
+					let lastIndex = currentGradientColors.count - 1
+					currentGradientColors[lastIndex].color = val
+				} else {
+					currentFillColor = val
+				}
+			}
+		}
+		
+		// Scheme color (theme color)
+		if elementName == "a:schemeClr" && isInShapeProperties {
+			if let val = attributeDict["val"] {
+				// Map common scheme colors to approximate values
+				let color: String
+				switch val {
+				case "accent1": color = "5B9BD5" // Blue
+				case "accent2": color = "ED7D31" // Orange
+				case "accent3": color = "A5A5A5" // Gray
+				case "accent4": color = "FFC000" // Yellow
+				case "accent5": color = "5B9BD5" // Blue
+				case "accent6": color = "70AD47" // Green
+				default: color = "808080" // Default gray
+				}
+				
+				if isInGradientFill && !currentGradientColors.isEmpty {
+					// Update the last gradient color
+					let lastIndex = currentGradientColors.count - 1
+					currentGradientColors[lastIndex].color = color
+				} else {
+					currentFillColor = color
+				}
+			}
+		}
+		
+		// Shape style
+		if elementName == "p:style" && isInShape {
+			isInShapeStyle = true
+			styleFillColor = nil
+		}
+		
+		// Fill reference in style
+		if elementName == "a:fillRef" && isInShapeStyle {
+			// The schemeClr will be in a child element
+			// We're now inside a fillRef, the next schemeClr should set our fill
+			isInFillRef = true
+		}
+		
+		// Scheme color in style - only process if we're inside a fillRef
+		if elementName == "a:schemeClr" && isInShapeStyle && isInFillRef {
+			if let val = attributeDict["val"] {
+				// Map scheme color to actual color
+				switch val {
+				case "accent1": styleFillColor = "5B9BD5" // Blue
+				case "accent2": styleFillColor = "ED7D31" // Orange
+				case "accent3": styleFillColor = "A5A5A5" // Gray
+				case "accent4": 
+					styleFillColor = "FFC000" // Yellow
+				case "accent5": styleFillColor = "5B9BD5" // Blue
+				case "accent6": styleFillColor = "70AD47" // Green
+				case "lt1": styleFillColor = nil // Light 1 - typically white/transparent
+				default: break // Don't reset for other scheme colors
+				}
 			}
 		}
 		
@@ -436,6 +570,7 @@ extension SlideXMLParser: XMLParserDelegate {
 		if elementName == "p:txBody" && isInTextBody {
 			isInTextBody = false
 			
+			
 			let textBox = TextBoxInfo(
 				paragraphs: currentParagraphs,
 				bodyProperties: BodyProperties(
@@ -456,6 +591,27 @@ extension SlideXMLParser: XMLParserDelegate {
 			currentParagraphs = []
 		}
 		
+		// End of gradient fill
+		if elementName == "a:gradFill" {
+			isInGradientFill = false
+		}
+		
+		// End of fill reference
+		if elementName == "a:fillRef" {
+			isInFillRef = false
+		}
+		
+		// End of style
+		if elementName == "p:style" {
+			isInShapeStyle = false
+			isInFillRef = false // Reset just in case
+		}
+		
+		// End of shape properties
+		if elementName == "p:spPr" {
+			isInShapeProperties = false
+		}
+		
 		// End of shape
 		if elementName == "p:sp" || elementName == "p:pic" || elementName == "p:graphicFrame" {
 			// Handle picture elements
@@ -473,9 +629,66 @@ extension SlideXMLParser: XMLParserDelegate {
 				isInPicture = false
 				currentPictureRelId = nil
 			}
+			// Handle regular shapes
+			else if elementName == "p:sp" && currentShapeType == "shape" {
+				// Check if we need to create a background shape
+				let fillColor = currentFillColor ?? styleFillColor
+				let hasGradient = !currentGradientColors.isEmpty && currentGradientColors.allSatisfy({ $0.color != "pending" })
+				
+				
+				// Create a background shape if:
+				// 1. The shape has no text (pure shape), OR
+				// 2. The shape has text AND has a fill color or gradient
+				if currentParagraphs.isEmpty || fillColor != nil || hasGradient {
+					// Create gradient fill if we have gradient colors
+					let gradientFill: GradientFill?
+					if hasGradient {
+						gradientFill = GradientFill(
+							colors: currentGradientColors,
+							angle: nil // TODO: Parse gradient angle
+						)
+					} else {
+						gradientFill = nil
+					}
+					
+					// Only create the shape if it's a pure shape OR has actual fill
+					if currentParagraphs.isEmpty || fillColor != nil || gradientFill != nil {
+						let shapeProps = ShapeProperties(
+							geometryType: currentGeometryType,
+							fillColor: fillColor,
+							gradientFill: gradientFill,
+							hasStroke: hasShapeLine,
+							strokeColor: nil, // TODO: Parse stroke color
+							strokeWidth: nil  // TODO: Parse stroke width
+						)
+						let shape = ShapeInfo(
+							id: currentShapeId,
+							frame: currentFrame,
+							transform: currentTransform,
+							type: .shape(shapeProps)
+						)
+						
+						// Insert background shape BEFORE the text box if we have text
+						if !currentParagraphs.isEmpty && !shapes.isEmpty {
+							// Find the text box we just added and insert before it
+							let lastIndex = shapes.count - 1
+							if case .textBox = shapes[lastIndex].type, shapes[lastIndex].id == currentShapeId {
+								shapes.insert(shape, at: lastIndex)
+							} else {
+								shapes.append(shape)
+							}
+						} else {
+							shapes.append(shape)
+						}
+					}
+				}
+			}
 			
 			isInShape = false
 			currentShapeType = ""
+			currentShapeProperties = nil
+			hasShapeLine = false
+			styleFillColor = nil // Reset style fill color
 		}
 	}
 }

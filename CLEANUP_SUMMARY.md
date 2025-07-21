@@ -92,10 +92,41 @@ The project now builds successfully with only one deprecation warning from ZIPFo
 
 4. Verify shape rendering with different shape types and styles
 
+5. Test style-based shape rendering:
+   - Verify shapes with fillRef render with correct background colors
+   - Ensure shapes with lnRef have correct border colors (not fill)
+   - Test slides with complex style references (e.g., slide 6 with yellow fill, slide 11 with green borders)
+   - Verify theme color mapping for all accent colors (accent1-6)
+
+### 7. Style-Based Fill Color Implementation
+
+#### SlideXMLParser.swift
+- Added support for parsing `<p:style>` elements containing fill references
+- Implemented theme color mapping for accent1-6 colors
+- Fixed critical bug where non-accent scheme colors (like "lt1") were resetting fill colors
+- The fix changed line 361 from `default: styleFillColor = nil` to `default: break`
+- This ensures style-based fills (like yellow backgrounds) render correctly
+
+### 8. Fill Reference Context Parsing
+
+#### SlideXMLParser.swift
+- Added `isInFillRef` flag to properly track parsing context within style elements
+- Fixed issue where line reference colors (`<a:lnRef>`) were being incorrectly applied as fill colors
+- Now correctly distinguishes between different types of style references:
+  - `<a:lnRef>` - Line/border colors
+  - `<a:fillRef>` - Fill/background colors
+  - `<a:effectRef>` - Effect references
+  - `<a:fontRef>` - Font references
+- This fix resolved the slide 11 rendering issue where shapes had green backgrounds instead of green borders
+- Properly handles "lt1" (light 1) theme color as transparent/white fill
+
 ## Future Improvements
 
 1. Update to new ZIPFoundation Archive initializer when available
 2. Implement remaining shape types beyond rectangles and ellipses
-3. Add support for gradient fills and pattern fills
+3. ~~Add support for gradient fills and pattern fills~~ ✓ Implemented gradient fills
 4. Implement proper text measurement for accurate text frame calculations
 5. Add caching for rendered slides to improve performance
+6. Add support for more complex theme color transformations (tint, shade, etc.)
+7. Implement pattern fills and texture fills
+8. Add support for custom color schemes beyond the default theme
