@@ -17,12 +17,12 @@ public class PPTXSlideView: UIView {
 	
 	/// Error handler callback
 	public var errorHandler: ((Error) -> Void)?
-    
-    /// Rendering scale factor
-    public var renderingScale: CGFloat = UIScreen.main.scale {
-        didSet { setNeedsRender() }
-    }
-    
+	
+	/// Rendering scale factor
+	public var renderingScale: CGFloat = UIScreen.main.scale {
+		didSet { setNeedsRender() }
+	}
+	
 	/// Background color
 	public override var backgroundColor: UIColor? {
 		didSet { setNeedsDisplay() }
@@ -38,78 +38,78 @@ public class PPTXSlideView: UIView {
 	
 	/// Initialize with a slide
 	public init(slide: Slide, frame: CGRect) {
-        self.slide = slide
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    /// Initialize with document and slide index
-    public init(document: PPTXDocument, slideIndex: Int, frame: CGRect = .zero) {
-        self.document = document
-        self.slideIndex = slideIndex
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    /// Initialize with document and slide ID
-    public init(document: PPTXDocument, slideId: String, frame: CGRect = .zero) {
-        self.document = document
-        self.slideId = slideId
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    /// Initialize empty view
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
-    
-    private func setupView() {
-        backgroundColor = .white
-        contentMode = .scaleAspectFit
-        
-        // Trigger initial render
-        setNeedsRender()
-    }
-    
-    /// Mark view for re-rendering
-    public func setNeedsRender() {
-        renderedImage = nil
-        setNeedsDisplay()
-    }
-    
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-        setNeedsRender()
-    }
-    
-    public override func draw(_ rect: CGRect) {
-        guard let context = UIGraphicsGetCurrentContext() else { return }
-        
-        // Draw background
-        if let bgColor = backgroundColor {
-            context.setFillColor(bgColor.cgColor)
-            context.fill(rect)
-        }
-        
-        // Get or render image
-        if renderedImage == nil {
-            renderSlide()
-        }
-        
-        // Draw rendered image
-        if let image = renderedImage {
-            let imageRect = calculateImageRect(for: image.size, in: bounds)
-            image.draw(in: imageRect)
-        }
-    }
-    
+		self.slide = slide
+		super.init(frame: frame)
+		setupView()
+	}
+	
+	/// Initialize with document and slide index
+	public init(document: PPTXDocument, slideIndex: Int, frame: CGRect = .zero) {
+		self.document = document
+		self.slideIndex = slideIndex
+		super.init(frame: frame)
+		setupView()
+	}
+	
+	/// Initialize with document and slide ID
+	public init(document: PPTXDocument, slideId: String, frame: CGRect = .zero) {
+		self.document = document
+		self.slideId = slideId
+		super.init(frame: frame)
+		setupView()
+	}
+	
+	/// Initialize empty view
+	public override init(frame: CGRect) {
+		super.init(frame: frame)
+		setupView()
+	}
+	
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+		setupView()
+	}
+	
+	private func setupView() {
+		backgroundColor = .white
+		contentMode = .scaleAspectFit
+		
+		// Trigger initial render
+		setNeedsRender()
+	}
+	
+	/// Mark view for re-rendering
+	public func setNeedsRender() {
+		renderedImage = nil
+		setNeedsDisplay()
+	}
+	
+	public override func layoutSubviews() {
+		super.layoutSubviews()
+		setNeedsRender()
+	}
+	
+	public override func draw(_ rect: CGRect) {
+		guard let context = UIGraphicsGetCurrentContext() else { return }
+		
+		// Draw background
+		if let bgColor = backgroundColor {
+			context.setFillColor(bgColor.cgColor)
+			context.fill(rect)
+		}
+		
+		// Get or render image
+		if renderedImage == nil {
+			renderSlide()
+		}
+		
+		// Draw rendered image
+		if let image = renderedImage {
+			let imageRect = calculateImageRect(for: image.size, in: bounds)
+			image.draw(in: imageRect)
+		}
+	}
+	
 	private func renderSlide() {
 		// Load slide if needed
 		if slide == nil {
@@ -174,22 +174,22 @@ public class PPTXSlideView: UIView {
 	}
 	
 	private func calculateImageRect(for imageSize: CGSize, in bounds: CGRect) -> CGRect {
-        let imageAspect = imageSize.width / imageSize.height
-        let boundsAspect = bounds.width / bounds.height
-        
-        if imageAspect > boundsAspect {
-            // Image is wider
-            let height = bounds.width / imageAspect
-            let y = (bounds.height - height) / 2
-            return CGRect(x: 0, y: y, width: bounds.width, height: height)
-        } else {
-            // Image is taller
-            let width = bounds.height * imageAspect
-            let x = (bounds.width - width) / 2
-            return CGRect(x: x, y: 0, width: width, height: bounds.height)
-        }
-    }
-    
+		let imageAspect = imageSize.width / imageSize.height
+		let boundsAspect = bounds.width / bounds.height
+		
+		if imageAspect > boundsAspect {
+			// Image is wider
+			let height = bounds.width / imageAspect
+			let y = (bounds.height - height) / 2
+			return CGRect(x: 0, y: y, width: bounds.width, height: height)
+		} else {
+			// Image is taller
+			let width = bounds.height * imageAspect
+			let x = (bounds.width - width) / 2
+			return CGRect(x: x, y: 0, width: width, height: bounds.height)
+		}
+	}
+	
 	private func renderErrorPlaceholder(_ error: Error) {
 		let renderer = UIGraphicsImageRenderer(size: bounds.size)
 		renderedImage = renderer.image { context in
@@ -285,12 +285,12 @@ public class PPTXSlideView: NSView {
 	
 	/// Error handler callback
 	public var errorHandler: ((Error) -> Void)?
-    
-    /// Rendering scale factor
-    public var renderingScale: CGFloat = 2.0 {
-        didSet { setNeedsRender() }
-    }
-    
+	
+	/// Rendering scale factor
+	public var renderingScale: CGFloat = 2.0 {
+		didSet { setNeedsRender() }
+	}
+	
 	/// Rendering quality
 	public var renderingQuality: RenderingQuality = .balanced {
 		didSet { setNeedsRender() }
@@ -305,76 +305,76 @@ public class PPTXSlideView: NSView {
 		super.init(frame: frame)
 		setupView()
 	}
-    
-    /// Initialize with document and slide index
-    public init(document: PPTXDocument, slideIndex: Int, frame: CGRect = .zero) {
-        self.document = document
-        self.slideIndex = slideIndex
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    /// Initialize with document and slide ID
-    public init(document: PPTXDocument, slideId: String, frame: CGRect = .zero) {
-        self.document = document
-        self.slideId = slideId
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    /// Initialize empty view
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
-    
-    private func setupView() {
-        wantsLayer = true
-        layer?.backgroundColor = NSColor.white.cgColor
-        
-        // Trigger initial render
-        setNeedsRender()
-    }
-    
-    /// Mark view for re-rendering
-    public func setNeedsRender() {
-        renderedImage = nil
-        needsDisplay = true
-    }
-    
-    public override func layout() {
-        super.layout()
-        setNeedsRender()
-    }
-    
-    public override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
-        
-        guard let context = NSGraphicsContext.current?.cgContext else { return }
-        
-        // Draw background
-        if let bgColor = layer?.backgroundColor {
-            context.setFillColor(bgColor)
-            context.fill(dirtyRect)
-        }
-        
-        // Get or render image
-        if renderedImage == nil {
-            renderSlide()
-        }
-        
-        // Draw rendered image
-        if let image = renderedImage {
-            let imageRect = calculateImageRect(for: image.size, in: bounds)
-            image.draw(in: imageRect)
-        }
-    }
-    
+	
+	/// Initialize with document and slide index
+	public init(document: PPTXDocument, slideIndex: Int, frame: CGRect = .zero) {
+		self.document = document
+		self.slideIndex = slideIndex
+		super.init(frame: frame)
+		setupView()
+	}
+	
+	/// Initialize with document and slide ID
+	public init(document: PPTXDocument, slideId: String, frame: CGRect = .zero) {
+		self.document = document
+		self.slideId = slideId
+		super.init(frame: frame)
+		setupView()
+	}
+	
+	/// Initialize empty view
+	public override init(frame: CGRect) {
+		super.init(frame: frame)
+		setupView()
+	}
+	
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+		setupView()
+	}
+	
+	private func setupView() {
+		wantsLayer = true
+		layer?.backgroundColor = NSColor.white.cgColor
+		
+		// Trigger initial render
+		setNeedsRender()
+	}
+	
+	/// Mark view for re-rendering
+	public func setNeedsRender() {
+		renderedImage = nil
+		needsDisplay = true
+	}
+	
+	public override func layout() {
+		super.layout()
+		setNeedsRender()
+	}
+	
+	public override func draw(_ dirtyRect: NSRect) {
+		super.draw(dirtyRect)
+		
+		guard let context = NSGraphicsContext.current?.cgContext else { return }
+		
+		// Draw background
+		if let bgColor = layer?.backgroundColor {
+			context.setFillColor(bgColor)
+			context.fill(dirtyRect)
+		}
+		
+		// Get or render image
+		if renderedImage == nil {
+			renderSlide()
+		}
+		
+		// Draw rendered image
+		if let image = renderedImage {
+			let imageRect = calculateImageRect(for: image.size, in: bounds)
+			image.draw(in: imageRect)
+		}
+	}
+	
 	private func renderSlide() {
 		// Load slide if needed
 		if slide == nil {
@@ -439,22 +439,22 @@ public class PPTXSlideView: NSView {
 	}
 	
 	private func calculateImageRect(for imageSize: CGSize, in bounds: CGRect) -> CGRect {
-        let imageAspect = imageSize.width / imageSize.height
-        let boundsAspect = bounds.width / bounds.height
-        
-        if imageAspect > boundsAspect {
-            // Image is wider
-            let height = bounds.width / imageAspect
-            let y = (bounds.height - height) / 2
-            return CGRect(x: 0, y: y, width: bounds.width, height: height)
-        } else {
-            // Image is taller
-            let width = bounds.height * imageAspect
-            let x = (bounds.width - width) / 2
-            return CGRect(x: x, y: 0, width: width, height: bounds.height)
-        }
-    }
-    
+		let imageAspect = imageSize.width / imageSize.height
+		let boundsAspect = bounds.width / bounds.height
+		
+		if imageAspect > boundsAspect {
+			// Image is wider
+			let height = bounds.width / imageAspect
+			let y = (bounds.height - height) / 2
+			return CGRect(x: 0, y: y, width: bounds.width, height: height)
+		} else {
+			// Image is taller
+			let width = bounds.height * imageAspect
+			let x = (bounds.width - width) / 2
+			return CGRect(x: x, y: 0, width: width, height: bounds.height)
+		}
+	}
+	
 	private func renderErrorPlaceholder(_ error: Error) {
 		let image = NSImage(size: bounds.size)
 		image.lockFocus()

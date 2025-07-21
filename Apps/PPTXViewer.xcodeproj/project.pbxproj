@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
         43D7714097804EF0A4565F9624537756 /* PPTXViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */; };
         91551AEB3EC84ADBB96DCB33F10BA213 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */; };
-        8992B7137FAB47268E6A327192280D9E /* PPTXViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D50166012FE4796BA26027541C54A70 /* PPTXViewerApp.swift */; };
-        0E5A3B9A4ABC4E7C9730DF4EA9A3BF67 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8003F2010AC147C18C024A202D33B7C9 /* ContentView.swift */; };
         B820BD2B54BE4177AF143D021DC63027 /* PPTXKit in Frameworks */ = {isa = PBXBuildFile; productRef = B820BD2B54BE4177AF143D02PRODUCT /* PPTXKit */; };
         478BA3BEE4D14C60B560FC18B089A35E /* PPTXKit in Frameworks */ = {isa = PBXBuildFile; productRef = 478BA3BEE4D14C60B560FC18PRODUCT /* PPTXKit */; };
 /* End PBXBuildFile section */
@@ -20,8 +18,8 @@
         7C16093DEE7349EE934F8DE5A581098A /* PPTXViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PPTXViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
         7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPTXViewerApp.swift; sourceTree = "<group>"; };
         12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-        2D50166012FE4796BA26027541C54A70 /* PPTXViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPTXViewerApp.swift; sourceTree = "<group>"; };
-        8003F2010AC147C18C024A202D33B7C9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+        ABCD1234567890EF1234567890ABCDEF /* Info-iOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-iOS.plist"; sourceTree = "<group>"; };
+        DCBA0987654321FE0987654321DCBA00 /* Info-macOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-macOS.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,8 +45,7 @@
         8115FBC6B9DA470BAF31F94C30353EE6 = {
             isa = PBXGroup;
             children = (
-                DA8D2DC766E54E41A0E3D0A5ABE33815 /* iOS */,
-                69D4A1C507E644F3B7820E29925C8979 /* macOS */,
+                AA11BB22CC33DD44EE55FF66AA77BB88 /* PPTXViewer */,
                 8115FBC6B9DA470BAF31F94CPRODUCTS /* Products */,
             );
             sourceTree = "<group>";
@@ -62,22 +59,15 @@
             name = Products;
             sourceTree = "<group>";
         };
-        DA8D2DC766E54E41A0E3D0A5ABE33815 /* iOS */ = {
+        AA11BB22CC33DD44EE55FF66AA77BB88 /* PPTXViewer */ = {
             isa = PBXGroup;
             children = (
                 7E9B9C6688E149489FE433A3C1788028 /* PPTXViewerApp.swift */,
                 12870891CEAF47C6A4A04C8A5CB7FBDD /* ContentView.swift */,
+                ABCD1234567890EF1234567890ABCDEF /* Info-iOS.plist */,
+                DCBA0987654321FE0987654321DCBA00 /* Info-macOS.plist */,
             );
-            path = "PPTXViewer-iOS";
-            sourceTree = "<group>";
-        };
-        69D4A1C507E644F3B7820E29925C8979 /* macOS */ = {
-            isa = PBXGroup;
-            children = (
-                2D50166012FE4796BA26027541C54A70 /* PPTXViewerApp.swift */,
-                8003F2010AC147C18C024A202D33B7C9 /* ContentView.swift */,
-            );
-            path = "PPTXViewer-macOS";
+            path = "PPTXViewer";
             sourceTree = "<group>";
         };
 /* End PBXGroup section */
@@ -167,8 +157,8 @@
             isa = PBXSourcesBuildPhase;
             buildActionMask = 2147483647;
             files = (
-                8992B7137FAB47268E6A327192280D9E /* PPTXViewerApp.swift in Sources */,
-                0E5A3B9A4ABC4E7C9730DF4EA9A3BF67 /* ContentView.swift in Sources */,
+                43D7714097804EF0A4565F9624537756 /* PPTXViewerApp.swift in Sources */,
+                91551AEB3EC84ADBB96DCB33F10BA213 /* ContentView.swift in Sources */,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
@@ -224,7 +214,7 @@
                 CURRENT_PROJECT_VERSION = 1;
                 ENABLE_PREVIEWS = YES;
                 GENERATE_INFOPLIST_FILE = YES;
-                INFOPLIST_FILE = "PPTXViewer-iOS/Info.plist";
+                INFOPLIST_FILE = "PPTXViewer/Info-iOS.plist";
                 IPHONEOS_DEPLOYMENT_TARGET = 16.0;
                 MARKETING_VERSION = 1.0;
                 PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";
@@ -244,7 +234,7 @@
                 CURRENT_PROJECT_VERSION = 1;
                 ENABLE_PREVIEWS = YES;
                 GENERATE_INFOPLIST_FILE = YES;
-                INFOPLIST_FILE = "PPTXViewer-iOS/Info.plist";
+                INFOPLIST_FILE = "PPTXViewer/Info-iOS.plist";
                 IPHONEOS_DEPLOYMENT_TARGET = 16.0;
                 MARKETING_VERSION = 1.0;
                 PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";
@@ -266,7 +256,7 @@
                 CURRENT_PROJECT_VERSION = 1;
                 ENABLE_PREVIEWS = YES;
                 GENERATE_INFOPLIST_FILE = YES;
-                INFOPLIST_FILE = "PPTXViewer-macOS/Info.plist";
+                INFOPLIST_FILE = "PPTXViewer/Info-macOS.plist";
                 MACOSX_DEPLOYMENT_TARGET = 13.0;
                 MARKETING_VERSION = 1.0;
                 PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";
@@ -285,7 +275,7 @@
                 CURRENT_PROJECT_VERSION = 1;
                 ENABLE_PREVIEWS = YES;
                 GENERATE_INFOPLIST_FILE = YES;
-                INFOPLIST_FILE = "PPTXViewer-macOS/Info.plist";
+                INFOPLIST_FILE = "PPTXViewer/Info-macOS.plist";
                 MACOSX_DEPLOYMENT_TARGET = 13.0;
                 MARKETING_VERSION = 1.0;
                 PRODUCT_BUNDLE_IDENTIFIER = "com.example.PPTXViewer";

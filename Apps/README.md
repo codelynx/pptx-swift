@@ -4,8 +4,10 @@ This directory contains full-featured sample applications demonstrating PPTXKit'
 
 ## Applications
 
-### PPTXViewer-iOS
-A complete iOS application featuring:
+### PPTXViewer
+A unified multi-platform application supporting both iOS and macOS, featuring:
+
+#### iOS Features:
 - Document browser for file selection
 - Full presentation view with navigation
 - Swipe gestures for slide navigation
@@ -13,8 +15,7 @@ A complete iOS application featuring:
 - Share functionality
 - Support for iPad and iPhone
 
-### PPTXViewer-macOS
-A native macOS application featuring:
+#### macOS Features:
 - Split view interface with slide list
 - Full-screen presentation mode
 - Keyboard shortcuts for navigation
