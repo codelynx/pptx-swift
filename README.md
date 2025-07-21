@@ -1,46 +1,44 @@
-# PPTX Analyzer
+# PPTXKit
 
-A Swift command-line utility and library for parsing and analyzing PowerPoint (PPTX) files.
+A Swift library for displaying and navigating PowerPoint (PPTX) presentations in iOS and macOS applications, with a companion CLI tool for testing and analysis.
 
 ## Overview
 
-PPTX Analyzer provides both a command-line interface and a Swift library (PPTXKit) to inspect and extract information from PowerPoint presentations without requiring Microsoft Office. It's built on the ECMA-376 Office Open XML standard.
+PPTXKit is a powerful Swift library that enables native iOS and macOS applications to display, render, and navigate PowerPoint presentations without requiring Microsoft Office. Built on the ECMA-376 Office Open XML standard, it provides high-fidelity rendering of slides with support for text, shapes, images, and theme colors.
+
+The project includes a command-line tool (`pptx-analyzer`) that's perfect for testing PPTXKit's capabilities and analyzing PPTX files during development.
+
+## Why PPTXKit?
+
+- **Native Performance** - Built with Swift for optimal performance on Apple platforms
+- **No Dependencies on Office** - Display PowerPoint files without Microsoft Office installed
+- **Easy Integration** - Simple API for adding PPTX viewing to your iOS/macOS apps
+- **Full Rendering Support** - Accurately renders text, shapes, images, and theme colors
+- **SwiftUI & UIKit/AppKit** - Works seamlessly with both UI frameworks
 
 ## Features
 
-- 📊 **Slide Counting** - Quick slide count extraction
-- 📋 **Slide Listing** - List all slides with multiple output formats (text, JSON, table)
-- 🔍 **Detailed Slide Info** - Extract text, shapes, and relationships from individual slides
-- 📄 **Presentation Metadata** - Access title, author, creation date, and more
-- 🎨 **Slide Rendering** - Render slides as native iOS/macOS views or images with accurate layout
-- 🖼️ **Image Support** - Full support for rendering images embedded in slides (PNG, JPEG, TIFF)
-- 🎯 **Presentation Management** - High-level API for navigation and state management
-- 🚀 **Fast & Efficient** - On-demand parsing for optimal performance
-- 🔧 **Dual Interface** - Use as CLI tool or Swift library
-- 📱 **Cross-Platform** - Supports iOS 16+ and macOS 13+
-- 🔤 **Advanced XML Parsing** - Detailed slide content extraction with proper text positioning
-- 🎨 **Shape Rendering** - Accurate shape rendering with fills, gradients, and style-based theming
-- 🖌️ **Theme Support** - Proper handling of PowerPoint theme colors (accent1-6)
+### Core Library (PPTXKit)
+- 🎨 **High-Fidelity Rendering** - Accurate slide rendering with proper layout and styling
+- 🖼️ **Image Support** - Full support for embedded images (PNG, JPEG, TIFF)
+- 📱 **Native Views** - Render slides as native iOS/macOS views or export as images
+- 🎯 **Navigation API** - Simple presentation management and slide navigation
+- 🎨 **Theme Support** - Proper handling of PowerPoint theme colors and styles
+- 🔤 **Text Rendering** - Accurate text positioning with font styles and formatting
+- 🔷 **Shape Rendering** - Support for rectangles, ellipses, and custom shapes with fills/gradients
+- 🚀 **Performance** - On-demand parsing and rendering for optimal performance
+
+### CLI Tool (pptx-analyzer)
+- 📊 **Slide Analysis** - Quick slide count and content extraction
+- 📋 **Batch Processing** - Process multiple presentations programmatically
+- 🔍 **Debugging** - Inspect slide structure and relationships
+- 🖼️ **Export** - Render slides as PNG images for testing
 
 ## Installation
 
-### Building from Source
+### Swift Package Manager
 
-```bash
-git clone https://github.com/yourusername/pptx-swift.git
-cd pptx-swift
-swift build -c release
-```
-
-### Installing the CLI Tool
-
-```bash
-sudo cp .build/release/pptx-analyzer /usr/local/bin/
-```
-
-### Using as a Swift Package
-
-Add to your `Package.swift`:
+Add PPTXKit to your iOS or macOS project:
 
 ```swift
 dependencies: [
@@ -48,136 +46,233 @@ dependencies: [
 ]
 ```
 
-## CLI Usage
-
-### Commands
-
-```bash
-# Get slide count
-pptx-analyzer count presentation.pptx
-
-# List all slides
-pptx-analyzer list presentation.pptx
-pptx-analyzer list --format json presentation.pptx
-pptx-analyzer list --format table --verbose presentation.pptx
-
-# Get slide information
-pptx-analyzer info --index 1 presentation.pptx
-pptx-analyzer info --id slide5 presentation.pptx
-
-# Get presentation summary
-pptx-analyzer summary presentation.pptx
-
-# Render slide as image
-pptx-analyzer render presentation.pptx --slide 1 --output slide1.png
-pptx-analyzer render presentation.pptx --slide 2 --output slide2.png --width 1920 --height 1080
-pptx-analyzer render presentation.pptx --slide 3 --output slide3.png --scale 2
-```
-
-See [CLI Usage Guide](docs/CLI_USAGE.md) for detailed command documentation.
-
-## Library Usage
+Then add `PPTXKit` to your target dependencies:
 
 ```swift
-import PPTXKit
-
-// Open a PPTX file
-let document = try PPTXDocument(filePath: "presentation.pptx")
-
-// Get slide count
-let count = try document.getSlideCount()
-
-// Get all slides
-let slides = try document.getSlides()
-for slide in slides {
-    print("\(slide.index): \(slide.title ?? "Untitled")")
-}
-
-// Get specific slide
-if let slide = try document.getSlide(at: 1) {
-    print("Text content:")
-    for text in slide.textContent {
-        print("- \(text)")
-    }
-}
-
-// Get metadata
-let metadata = try document.getMetadata()
-print("Author: \(metadata.author ?? "Unknown")")
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: ["PPTXKit"]
+    )
+]
 ```
 
-### Presentation Management
+## Quick Start
+
+### Basic SwiftUI App
 
 ```swift
-import PPTXKit
 import SwiftUI
+import PPTXKit
 
-// Create presentation manager
-let manager = PPTXManager()
-try manager.loadPresentation(from: "presentation.pptx")
-
-// Navigate slides
-manager.goToNext()
-manager.goToSlide(at: 5)
-
-// SwiftUI presentation view
 struct ContentView: View {
     @StateObject private var manager = PPTXManager()
     
     var body: some View {
-        PPTXPresentationView(manager: manager)
-            .navigationControlsVisible(true)
-            .renderingQuality(.high)
+        VStack {
+            if manager.isLoaded {
+                PPTXPresentationView(manager: manager)
+                    .navigationControlsVisible(true)
+            } else {
+                Button("Open Presentation") {
+                    openPresentation()
+                }
+            }
+        }
+    }
+    
+    func openPresentation() {
+        // For iOS: Use document picker
+        // For macOS: Use NSOpenPanel
+        if let url = selectPPTXFile() {
+            try? manager.loadPresentation(from: url)
+        }
+    }
+}
+```
+
+### Basic UIKit App
+
+```swift
+import UIKit
+import PPTXKit
+
+class ViewController: UIViewController {
+    let manager = PPTXManager()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Load presentation
+        if let url = Bundle.main.url(forResource: "presentation", withExtension: "pptx") {
+            try? manager.loadPresentation(from: url)
+            
+            // Create presentation view controller
+            let presentationVC = PPTXPresentationViewController(manager: manager)
+            
+            // Add as child view controller
+            addChild(presentationVC)
+            view.addSubview(presentationVC.view)
+            presentationVC.view.frame = view.bounds
+            presentationVC.didMove(toParent: self)
+        }
     }
 }
 
-// UIKit presentation controller
-let presentationVC = PPTXPresentationViewController(manager: manager)
-present(presentationVC, animated: true)
 ```
 
-### Rendering Slides
+## Advanced Usage
+
+### Custom Slide Rendering
 
 ```swift
 import PPTXKit
 import SwiftUI
 
-// SwiftUI view
-struct ContentView: View {
+struct CustomSlideView: View {
     let document: PPTXDocument
+    @State private var currentSlide = 1
     
     var body: some View {
-        PPTXSlideViewUI(document: document, slideIndex: 1)
-            .renderingQuality(.high)
-            .frame(width: 800, height: 600)
+        VStack {
+            // Slide view with custom styling
+            PPTXSlideViewUI(document: document, slideIndex: currentSlide)
+                .renderingQuality(.high)
+                .frame(width: 800, height: 600)
+                .cornerRadius(10)
+                .shadow(radius: 5)
+            
+            // Custom navigation
+            HStack {
+                Button("Previous") {
+                    if currentSlide > 1 {
+                        currentSlide -= 1
+                    }
+                }
+                
+                Text("Slide \(currentSlide) of \(try? document.getSlideCount() ?? 0)")
+                
+                Button("Next") {
+                    if currentSlide < (try? document.getSlideCount() ?? 0) {
+                        currentSlide += 1
+                    }
+                }
+            }
+        }
     }
 }
-
-// UIKit/AppKit
-let slideView = PPTXSlideView(document: document, slideIndex: 1)
-slideView.renderingQuality = .high
-view.addSubview(slideView)
-
-// Render to image with accurate layout and image support
-let renderer = SlideRenderer(context: RenderingContext(size: CGSize(width: 1920, height: 1080)))
-// Pass the document's archive for image loading
-let image = try renderer.render(slide: slide, archive: document.archive)
-
-// The renderer now:
-// - Uses SlideXMLParser for accurate text positioning
-// - Properly handles PowerPoint's complex layout structure
-// - Renders embedded images (PNG, JPEG, TIFF) with correct orientation
-// - Preserves aspect ratios for all content
 ```
 
-See [API Reference](docs/API_REFERENCE.md) for complete library documentation.
+### Export Slides as Images
+
+```swift
+import PPTXKit
+
+// Export single slide
+let document = try PPTXDocument(filePath: "presentation.pptx")
+let slide = try document.getSlide(at: 1)
+
+let renderer = SlideRenderer(
+    context: RenderingContext(size: CGSize(width: 1920, height: 1080))
+)
+let image = try renderer.render(slide: slide!, archive: document.archive)
+
+// Save as PNG
+if let data = image.pngData() {
+    try data.write(to: URL(fileURLWithPath: "slide1.png"))
+}
+
+// Export all slides
+for i in 1...(try document.getSlideCount()) {
+    if let slide = try document.getSlide(at: i) {
+        let image = try renderer.render(slide: slide, archive: document.archive)
+        // Save each slide...
+    }
+}
+```
+
+### Extracting Content
+
+```swift
+import PPTXKit
+
+let document = try PPTXDocument(filePath: "presentation.pptx")
+
+// Get presentation metadata
+let metadata = try document.getMetadata()
+print("Title: \(metadata.title ?? "Untitled")")
+print("Author: \(metadata.author ?? "Unknown")")
+print("Created: \(metadata.created ?? Date())")
+
+// Extract text from all slides
+let slides = try document.getSlides()
+for slide in slides {
+    print("\nSlide \(slide.index):")
+    for text in slide.textContent {
+        print("  - \(text)")
+    }
+}
+```
+
+## CLI Tool Usage
+
+The included `pptx-analyzer` CLI tool is great for:
+- Testing PPTXKit functionality during development
+- Batch processing presentations
+- Quick analysis and debugging
+
+### Installation
+
+```bash
+git clone https://github.com/yourusername/pptx-swift.git
+cd pptx-swift
+swift build -c release
+sudo cp .build/release/pptx-analyzer /usr/local/bin/
+```
+
+### Basic Commands
+
+```bash
+# Quick analysis
+pptx-analyzer count presentation.pptx
+pptx-analyzer list presentation.pptx
+
+# Export slides for testing
+pptx-analyzer render presentation.pptx --slide 1 --output slide1.png
+
+# Get detailed information
+pptx-analyzer info --index 1 presentation.pptx
+pptx-analyzer summary presentation.pptx
+```
+
+See [CLI Usage Guide](docs/CLI_USAGE.md) for more details.
+
+## Use Cases
+
+PPTXKit is perfect for:
+
+- **Educational Apps** - Display course materials and lectures without requiring PowerPoint
+- **Business Apps** - View presentations in meeting apps, CRM systems, or document viewers
+- **Kiosk/Display Systems** - Show presentations on digital signage or information displays
+- **Document Management** - Preview PowerPoint files in document management systems
+- **Presentation Tools** - Build custom presentation apps with unique features
+- **Content Processing** - Extract and analyze presentation content programmatically
 
 ## Sample Applications
 
-Complete sample apps are provided for both iOS and macOS platforms:
+Complete sample apps demonstrate real-world usage:
 
-- **iOS Viewer** (`SampleApps/PPTXViewer-iOS/`) - Universal iOS app with document browser
-- **macOS Viewer** (`SampleApps/PPTXViewer-macOS/`) - Native macOS app with split view
+- **iOS Viewer** (`SampleApps/PPTXViewer-iOS/`)
+  - Document browser integration
+  - Full presentation navigation
+  - Gesture support (swipe between slides)
+  - Share and export functionality
+
+- **macOS Viewer** (`SampleApps/PPTXViewer-macOS/`)
+  - Split view with slide thumbnails
+  - Keyboard navigation
+  - Full-screen presentation mode
+  - Quick Look integration
 
 See [Sample Apps README](SampleApps/README.md) for setup instructions.
 
@@ -188,19 +283,28 @@ See [Sample Apps README](SampleApps/README.md) for setup instructions.
 - [Architecture](docs/ARCHITECTURE.md) - System design and implementation details
 - [Development Guide](docs/DEVELOPMENT.md) - Contributing and development setup
 
-## Project Structure
+## Architecture
+
+PPTXKit is designed with a modular architecture:
 
 ```
-pptx-swift/
-├── Sources/
-│   ├── PPTXKit/           # Core parsing library
-│   └── PPTXAnalyzerCLI/   # Command-line interface
-├── Tests/                 # Unit and integration tests
-├── SampleApps/            # iOS and macOS sample applications
-│   ├── PPTXViewer-iOS/    # iOS viewer app
-│   └── PPTXViewer-macOS/  # macOS viewer app
-├── docs/                  # Documentation
-└── specifications/        # ECMA-376 reference files
+PPTXKit/
+├── Core/
+│   ├── PPTXDocument        # Main document interface
+│   ├── SlideXMLParser      # Advanced XML parsing with layout support
+│   └── Parsers/            # Various XML parsers for PPTX structure
+├── Rendering/
+│   ├── SlideRenderer       # Core rendering engine
+│   ├── ImageRenderer       # Image loading and rendering
+│   └── ShapeRenderer       # Shape and geometry rendering
+├── Platform/
+│   ├── PPTXSlideView       # Native UIKit/AppKit view
+│   ├── PPTXSlideViewUI     # SwiftUI wrapper
+│   └── PPTXManager         # Presentation state management
+└── Models/
+    ├── Slide               # Slide data model
+    ├── Shape               # Shape definitions
+    └── Theme               # Theme color support
 ```
 
 ## Requirements
@@ -216,7 +320,15 @@ pptx-swift/
 
 ## Contributing
 
-Contributions are welcome! Please see the [Development Guide](docs/DEVELOPMENT.md) for setup instructions and coding guidelines.
+We welcome contributions! PPTXKit is an active project with opportunities for:
+
+- Additional shape type support
+- Animation and transition rendering
+- Performance optimizations
+- Platform-specific features
+- Documentation improvements
+
+See the [Development Guide](docs/DEVELOPMENT.md) for setup instructions and coding guidelines.
 
 ## License
 
@@ -224,6 +336,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Based on the ECMA-376 Office Open XML specification
-- Inspired by the need for lightweight PPTX analysis tools
-- Built with Swift and ❤️
+- Built on the ECMA-376 Office Open XML specification
+- Designed for the Apple developer community
+- Created to enable PowerPoint viewing without Microsoft Office dependencies
+- Special thanks to all contributors and users who have helped improve PPTXKit
