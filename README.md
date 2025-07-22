@@ -36,6 +36,7 @@ The project includes a command-line tool (`pptx-analyzer`) that's perfect for te
 - 📋 **Batch Processing** - Process multiple presentations programmatically
 - 🔍 **Debugging** - Inspect slide structure and relationships
 - 🖼️ **Export** - Render slides as PNG images for testing
+- 📈 **Comparison Tools** - Compare rendering output with PowerPoint references
 
 ## Installation
 
@@ -236,19 +237,22 @@ sudo cp .build/release/pptx-analyzer /usr/local/bin/
 ### Basic Commands
 
 ```bash
-# Quick analysis
-pptx-analyzer count presentation.pptx
-pptx-analyzer list presentation.pptx
+# Get presentation summary
+swift run pptx-analyzer summary presentation.pptx
 
-# Export slides for testing
-pptx-analyzer render presentation.pptx --slide 1 --output slide1.png
+# Render single slide to PNG
+swift run pptx-analyzer render presentation.pptx --slide 1 --output slide1.png
 
-# Get detailed information
-pptx-analyzer info --index 1 presentation.pptx
-pptx-analyzer summary presentation.pptx
+# Batch render all slides
+for i in {1..6}; do
+  swift run pptx-analyzer render presentation.pptx --slide $i --output slide_$i.png
+done
+
+# Compare with PowerPoint output
+./scripts/compare_rendering.sh presentation.pptx 6
 ```
 
-See [CLI Usage Guide](docs/CLI_USAGE.md) for more details.
+See [CLI Usage Guide](Documentation/CLI_USAGE.md) for complete documentation.
 
 ## Use Cases
 
@@ -289,10 +293,15 @@ See [Examples README](Examples/README.md) for quick start examples.
 
 ## Documentation
 
+### Core Documentation
 - [API Reference](Documentation/API/) - Complete PPTXKit library documentation
-- [User Guides](Documentation/Guides/) - Installation, usage, and development guides
-- [CLI Documentation](Documentation/CLI/) - Command-line tool documentation
-- [Migration Guide](MIGRATION.md) - Guide for migrating to the new structure
+- [Rendering Plan](Documentation/Guides/RENDERING_PLAN.md) - Current implementation status and roadmap
+
+### Usage Guides  
+- [CLI Usage Guide](Documentation/CLI_USAGE.md) - Command-line tool usage and examples
+- [Rendering Comparison Guide](Documentation/Guides/RENDERING_COMPARISON_GUIDE.md) - Compare PPTXKit output with PowerPoint
+- [Table Implementation](Documentation/Guides/TABLE_RENDERING_IMPLEMENTATION.md) - Table rendering details
+- [Gradient & Stroke Implementation](Documentation/Guides/GRADIENT_AND_STROKE_IMPLEMENTATION.md) - Advanced rendering features
 
 ## Architecture
 
