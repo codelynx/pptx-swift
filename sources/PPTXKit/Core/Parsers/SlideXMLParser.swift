@@ -132,14 +132,19 @@ public class SlideXMLParser: NSObject {
 	private var isInShapeStyle = false
 	private var isInFillRef = false
 	private var styleFillColor: String?
+	private var currentPlaceholderType: String?
 	
 	// EMU to points conversion (1 point = 12700 EMUs)
 	private let emuPerPoint: CGFloat = 12700
 	
+	// Theme for resolving colors
+	private var theme: Theme?
+	
 	/// Parse slide XML to extract detailed shape and text information
-	public func parseSlide(data: Data) throws -> [ShapeInfo] {
+	public func parseSlide(data: Data, theme: Theme? = nil) throws -> [ShapeInfo] {
 		shapes.removeAll()
 		resetState()
+		self.theme = theme
 		
 		let parser = XMLParser(data: data)
 		parser.delegate = self
@@ -236,6 +241,27 @@ extension SlideXMLParser: XMLParserDelegate {
 			}
 		}
 		
+		// Placeholder properties - set default positions
+		if elementName == "p:ph" && isInShape {
+			if let type = attributeDict["type"] {
+				currentPlaceholderType = type
+				switch type {
+				case "ctrTitle":
+					// Default center title position
+					currentFrame = CGRect(x: 120, y: 88, width: 720, height: 188)
+				case "subTitle":
+					// Default subtitle position
+					currentFrame = CGRect(x: 120, y: 310, width: 720, height: 100)
+				case "body":
+					// Default body position
+					currentFrame = CGRect(x: 120, y: 188, width: 720, height: 300)
+				default:
+					// Default fallback
+					currentFrame = CGRect(x: 50, y: 50, width: 500, height: 100)
+				}
+			}
+		}
+		
 		// Transform
 		if elementName == "a:xfrm" && isInShape {
 			currentTransform = parseTransform(from: attributeDict)
@@ -314,16 +340,22 @@ extension SlideXMLParser: XMLParserDelegate {
 		// Scheme color (theme color)
 		if elementName == "a:schemeClr" && isInShapeProperties {
 			if let val = attributeDict["val"] {
-				// Map common scheme colors to approximate values
+				// Resolve color from theme if available
 				let color: String
-				switch val {
-				case "accent1": color = "5B9BD5" // Blue
-				case "accent2": color = "ED7D31" // Orange
-				case "accent3": color = "A5A5A5" // Gray
-				case "accent4": color = "FFC000" // Yellow
-				case "accent5": color = "5B9BD5" // Blue
-				case "accent6": color = "70AD47" // Green
-				default: color = "808080" // Default gray
+				if let theme = self.theme,
+				   let themeColor = theme.colorScheme.color(for: val) {
+					color = themeColor.hexValue
+				} else {
+					// Fallback to hardcoded values if no theme
+					switch val {
+					case "accent1": color = "5B9BD5" // Blue
+					case "accent2": color = "ED7D31" // Orange
+					case "accent3": color = "A5A5A5" // Gray
+					case "accent4": color = "FFC000" // Yellow
+					case "accent5": color = "5B9BD5" // Blue
+					case "accent6": color = "70AD47" // Green
+					default: color = "808080" // Default gray
+					}
 				}
 				
 				if isInGradientFill && !currentGradientColors.isEmpty {
@@ -352,17 +384,22 @@ extension SlideXMLParser: XMLParserDelegate {
 		// Scheme color in style - only process if we're inside a fillRef
 		if elementName == "a:schemeClr" && isInShapeStyle && isInFillRef {
 			if let val = attributeDict["val"] {
-				// Map scheme color to actual color
-				switch val {
-				case "accent1": styleFillColor = "5B9BD5" // Blue
-				case "accent2": styleFillColor = "ED7D31" // Orange
-				case "accent3": styleFillColor = "A5A5A5" // Gray
-				case "accent4": 
-					styleFillColor = "FFC000" // Yellow
-				case "accent5": styleFillColor = "5B9BD5" // Blue
-				case "accent6": styleFillColor = "70AD47" // Green
-				case "lt1": styleFillColor = nil // Light 1 - typically white/transparent
-				default: break // Don't reset for other scheme colors
+				// Resolve color from theme if available
+				if let theme = self.theme,
+				   let themeColor = theme.colorScheme.color(for: val) {
+					styleFillColor = themeColor.hexValue
+				} else {
+					// Fallback to hardcoded values if no theme
+					switch val {
+					case "accent1": styleFillColor = "5B9BD5" // Blue
+					case "accent2": styleFillColor = "ED7D31" // Orange
+					case "accent3": styleFillColor = "A5A5A5" // Gray
+					case "accent4": styleFillColor = "FFC000" // Yellow
+					case "accent5": styleFillColor = "5B9BD5" // Blue
+					case "accent6": styleFillColor = "70AD47" // Green
+					case "lt1": styleFillColor = nil // Light 1 - typically white/transparent
+					default: break // Don't reset for other scheme colors
+					}
 				}
 			}
 		}
@@ -412,9 +449,19 @@ extension SlideXMLParser: XMLParserDelegate {
 			isInParagraph = true
 			currentRuns = []
 			
-			// Default paragraph properties
+			// Default paragraph properties based on placeholder type
+			var defaultAlignment: NSTextAlignment = .left
+			if let placeholderType = currentPlaceholderType {
+				switch placeholderType {
+				case "ctrTitle", "subTitle":
+					defaultAlignment = .center
+				default:
+					defaultAlignment = .left
+				}
+			}
+			
 			currentParagraphProperties = ParagraphProperties(
-				alignment: .left,
+				alignment: defaultAlignment,
 				indent: 0,
 				bulletType: nil,
 				spacing: LineSpacing(before: 0, after: 0, line: 1.0)
@@ -423,8 +470,18 @@ extension SlideXMLParser: XMLParserDelegate {
 		
 		// Paragraph properties
 		if elementName == "a:pPr" && isInParagraph {
-			let alignment = parseAlignment(attributeDict["algn"])
+			var alignment = parseAlignment(attributeDict["algn"])
 			let indent = emuToPoints(Int(attributeDict["indent"] ?? "") ?? 0)
+			
+			// If no alignment specified and we have a placeholder type, use defaults
+			if attributeDict["algn"] == nil && currentPlaceholderType != nil {
+				switch currentPlaceholderType {
+				case "ctrTitle", "subTitle":
+					alignment = .center
+				default:
+					break
+				}
+			}
 			
 			currentParagraphProperties = ParagraphProperties(
 				alignment: alignment,
@@ -451,9 +508,21 @@ extension SlideXMLParser: XMLParserDelegate {
 			isInRun = true
 			currentText = ""
 			
-			// Default run properties
+			// Default run properties based on placeholder type
+			var defaultFontSize: CGFloat? = nil
+			if let placeholderType = currentPlaceholderType {
+				switch placeholderType {
+				case "ctrTitle":
+					defaultFontSize = 60.0 // 60pt for main titles
+				case "subTitle":
+					defaultFontSize = 32.0 // 32pt for subtitles
+				default:
+					defaultFontSize = 18.0 // Default body text
+				}
+			}
+			
 			currentRunProperties = RunProperties(
-				fontSize: nil,
+				fontSize: defaultFontSize,
 				bold: false,
 				italic: false,
 				underline: false,
@@ -464,10 +533,22 @@ extension SlideXMLParser: XMLParserDelegate {
 		
 		// Run properties
 		if elementName == "a:rPr" && isInRun {
-			let fontSize = attributeDict["sz"] != nil ? CGFloat(Int(attributeDict["sz"]!) ?? 1800) / 100.0 : nil
+			var fontSize = attributeDict["sz"] != nil ? CGFloat(Int(attributeDict["sz"]!) ?? 1800) / 100.0 : nil
 			let bold = attributeDict["b"] == "1"
 			let italic = attributeDict["i"] == "1"
 			let underline = attributeDict["u"] != nil
+			
+			// If no font size specified and we have a placeholder type, use defaults
+			if fontSize == nil && currentPlaceholderType != nil {
+				switch currentPlaceholderType {
+				case "ctrTitle":
+					fontSize = 60.0 // 60pt for main titles
+				case "subTitle":
+					fontSize = 32.0 // 32pt for subtitles
+				default:
+					fontSize = 18.0 // Default body text
+				}
+			}
 			
 			currentRunProperties = RunProperties(
 				fontSize: fontSize,
@@ -689,6 +770,7 @@ extension SlideXMLParser: XMLParserDelegate {
 			currentShapeProperties = nil
 			hasShapeLine = false
 			styleFillColor = nil // Reset style fill color
+			currentPlaceholderType = nil // Reset placeholder type
 		}
 	}
 }

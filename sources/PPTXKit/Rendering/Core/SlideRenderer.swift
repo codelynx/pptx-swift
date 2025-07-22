@@ -14,10 +14,12 @@ public class SlideRenderer {
 	private let textRenderer: TextRenderer
 	private let imageRenderer: ImageRenderer
 	private var archive: Archive?
+	private var document: PPTXDocument?
 	
-	public init(context: RenderingContext, archive: Archive? = nil) {
+	public init(context: RenderingContext, archive: Archive? = nil, document: PPTXDocument? = nil) {
 		self.context = context
 		self.archive = archive
+		self.document = document
 		self.shapeRenderer = ShapeRenderer(context: context)
 		self.textRenderer = TextRenderer(context: context)
 		self.imageRenderer = ImageRenderer(context: context)
@@ -26,6 +28,11 @@ public class SlideRenderer {
 	/// Set the archive for loading resources
 	public func setArchive(_ archive: Archive?) {
 		self.archive = archive
+	}
+	
+	/// Set the document for theme resolution
+	public func setDocument(_ document: PPTXDocument?) {
+		self.document = document
 	}
 	
 	/// Render a slide to a CGImage
@@ -89,9 +96,11 @@ public class SlideRenderer {
 		
 		// Check if we have raw XML data to parse
 		if let xmlData = slide.rawXMLData {
+			print("DEBUG: Parsing XML data of size: \(xmlData.count) bytes")
 			// Parse the slide XML to get detailed layout information
 			let parser = SlideXMLParser()
-			let shapes = try parser.parseSlide(data: xmlData)
+			let shapes = try parser.parseSlide(data: xmlData, theme: document?.theme)
+			print("DEBUG: Parsed \(shapes.count) shapes from XML")
 			
 			// Convert parsed shapes to render elements
 			// First pass: collect shapes by ID to check for text boxes with backgrounds
@@ -108,6 +117,8 @@ public class SlideRenderer {
 				if processedIDs.contains(shape.id) {
 					continue
 				}
+				
+				print("DEBUG: Processing shape id: \(shape.id), type: \(shape.type), frame: \(shape.frame)")
 				
 				switch shape.type {
 				case .textBox(let textBox):
@@ -223,6 +234,8 @@ public class SlideRenderer {
 				}
 			}
 			
+			print("DEBUG: Paragraph text: '\(paragraphText)', fontSize: \(fontSize)")
+			
 			if !paragraphText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 				// Create appropriate font
 				let font: PlatformFont
@@ -253,17 +266,24 @@ public class SlideRenderer {
 				
 				// Calculate text height (approximate)
 				let lineHeight = fontSize * 1.2
-				let textHeight = lineHeight * CGFloat(paragraphText.components(separatedBy: .newlines).count)
+				let lineCount = max(1, paragraphText.components(separatedBy: .newlines).count)
+				let textHeight = lineHeight * CGFloat(lineCount)
 				
 				// Create render element
+				let textX = frame.origin.x + textBox.bodyProperties.margins.left + paragraph.properties.indent
+				let textWidth = max(10, frame.width - textBox.bodyProperties.margins.left - textBox.bodyProperties.margins.right - paragraph.properties.indent)
+				
+				let textFrame = CGRect(
+					x: textX,
+					y: yOffset,
+					width: textWidth,
+					height: textHeight
+				)
+				print("DEBUG: Creating text element with frame: \(textFrame), text: '\(paragraphText)'")
+				
 				let element = RenderElement(
 					type: .text,
-					frame: CGRect(
-						x: frame.origin.x + textBox.bodyProperties.margins.left + paragraph.properties.indent,
-						y: yOffset,
-						width: frame.width - textBox.bodyProperties.margins.left - textBox.bodyProperties.margins.right - paragraph.properties.indent,
-						height: textHeight
-					),
+					frame: textFrame,
 					content: .text(paragraphText, textStyle),
 					transform: transform
 				)

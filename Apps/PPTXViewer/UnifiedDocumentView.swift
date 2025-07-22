@@ -9,71 +9,49 @@ enum NavigationDestination: Hashable {
 	case slide(index: Int)
 }
 
-/// Unified document view that works on both iOS and macOS using NavigationStack
+/// Unified document view that works on both iOS and macOS using NavigationSplitView
 struct UnifiedDocumentView: View {
 	@Binding var document: PPTXDocumentWrapper
-	@State private var navigationPath = NavigationPath()
 	@State private var selectedDestination: NavigationDestination? = .presentation
-	@State private var showingSidebar = true
+	@State private var columnVisibility = NavigationSplitViewVisibility.all
 	
 	var body: some View {
-		NavigationStack(path: $navigationPath) {
-			#if os(macOS)
-			// macOS: Fixed two-column layout
-			HStack(spacing: 0) {
-				// Sidebar
-				sidebarView
-					.frame(width: 250)
-					.background(Color(NSColor.controlBackgroundColor))
-				
-				Divider()
-				
-				// Detail
-				detailView
-					.frame(maxWidth: .infinity, maxHeight: .infinity)
-			}
-			.frame(minWidth: 800, minHeight: 600)
-			#else
-			// iOS: Adaptive layout
-			if UIDevice.current.userInterfaceIdiom == .pad {
-				// iPad: Collapsible sidebar
-				HStack(spacing: 0) {
-					if showingSidebar {
-						sidebarView
-							.frame(width: 300)
-							.background(Color(UIColor.systemGroupedBackground))
-							.transition(.move(edge: .leading))
-					}
-					
-					Divider()
-					
-					detailView
-						.frame(maxWidth: .infinity, maxHeight: .infinity)
-						.toolbar {
-							ToolbarItem(placement: .navigationBarLeading) {
-								Button(action: { withAnimation { showingSidebar.toggle() } }) {
-									Image(systemName: "sidebar.left")
-								}
-							}
-						}
-				}
-			} else {
-				// iPhone: Stack navigation
-				sidebarView
-					.navigationDestination(for: NavigationDestination.self) { destination in
-						detailViewForDestination(destination)
-					}
-			}
-			#endif
+		NavigationSplitView(columnVisibility: $columnVisibility) {
+			// Sidebar
+			sidebarContent
+				.navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 400)
+		} detail: {
+			// Detail view
+			detailView
 		}
-		#if os(iOS)
-		.navigationViewStyle(.stack)
+		.navigationSplitViewStyle(.balanced)
+		#if os(macOS)
+		.frame(minWidth: 800, minHeight: 600)
+		.toolbar {
+			ToolbarItem(placement: .navigation) {
+				Button(action: toggleSidebar) {
+					Image(systemName: "sidebar.left")
+				}
+			}
+		}
 		#endif
 	}
 	
+	// MARK: - Helper Functions
+	
+	#if os(macOS)
+	private func toggleSidebar() {
+		if columnVisibility == .all {
+			columnVisibility = .detailOnly
+		} else {
+			columnVisibility = .all
+		}
+	}
+	#endif
+	
 	// MARK: - Sidebar
 	
-	private var sidebarView: some View {
+	private var sidebarContent: some View {
 		List(selection: $selectedDestination) {
 			Section("Views") {
 				NavigationLink(value: NavigationDestination.presentation) {
@@ -118,13 +96,6 @@ struct UnifiedDocumentView: View {
 		.listStyle(.sidebar)
 		#endif
 		.onChange(of: selectedDestination) { newValue in
-			// On iPhone, push to navigation stack
-			#if os(iOS)
-			if UIDevice.current.userInterfaceIdiom == .phone, let destination = newValue {
-				navigationPath.append(destination)
-			}
-			#endif
-			
 			// Handle slide navigation
 			if case .slide(let index) = newValue {
 				document.manager.goToSlide(at: index)

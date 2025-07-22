@@ -9,6 +9,9 @@ public class PPTXDocument {
 	/// Archive containing the PPTX contents
 	public internal(set) var archive: Archive?
 	
+	/// Theme containing color schemes and fonts
+	public private(set) var theme: Theme?
+	
 	/// Errors that can occur when working with PPTX files
 	public enum PPTXError: Error, LocalizedError {
 		case fileNotFound
@@ -58,6 +61,9 @@ public class PPTXDocument {
 		
 		// Validate basic PPTX structure
 		try validatePPTXStructure()
+		
+		// Load theme
+		loadTheme()
 	}
 	
 	/// Validate that this is a valid PPTX file
@@ -349,5 +355,26 @@ public class PPTXDocument {
 		)
 		
 		return metadata
+	}
+	
+	/// Load theme from the PPTX archive
+	private func loadTheme() {
+		guard let archive = self.archive else {
+			print("Warning: No archive available for theme loading")
+			return
+		}
+		
+		do {
+			let themeParser = ThemeParser()
+			self.theme = try themeParser.parseTheme(from: archive)
+			
+			if let theme = self.theme {
+				print("Successfully loaded theme: \(theme.name)")
+				print("- Accent1 color: #\(theme.colorScheme.accent1.hexValue)")
+			}
+		} catch {
+			print("Warning: Failed to load theme: \(error)")
+			// Theme is optional, so we don't throw
+		}
 	}
 }

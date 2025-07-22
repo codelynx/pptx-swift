@@ -131,7 +131,7 @@ public class PPTXSlideView: UIView {
 		)
 		
 		// Create renderer
-		let renderer = SlideRenderer(context: renderContext)
+		let renderer = SlideRenderer(context: renderContext, document: document)
 		
 		// Render slide
 		do {
@@ -396,7 +396,7 @@ public class PPTXSlideView: NSView {
 		)
 		
 		// Create renderer
-		let renderer = SlideRenderer(context: renderContext)
+		let renderer = SlideRenderer(context: renderContext, document: document)
 		
 		// Render slide
 		do {

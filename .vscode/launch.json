@@ -35,6 +35,24 @@
 			"name": "Release TestMacOSApp",
 			"program": "${workspaceFolder:pptx-swift}/.build/release/TestMacOSApp",
 			"preLaunchTask": "swift: Build Release TestMacOSApp"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:pptx-swift}",
+			"name": "Debug AnalyzeSlide",
+			"program": "${workspaceFolder:pptx-swift}/.build/debug/AnalyzeSlide",
+			"preLaunchTask": "swift: Build Debug AnalyzeSlide"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:pptx-swift}",
+			"name": "Release AnalyzeSlide",
+			"program": "${workspaceFolder:pptx-swift}/.build/release/AnalyzeSlide",
+			"preLaunchTask": "swift: Build Release AnalyzeSlide"
 		}
 	]
 }
