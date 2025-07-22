@@ -265,19 +265,32 @@ let fontMap = [
 - **Coordinate System Fix**: Fixed iOS rendering (slides no longer appear upside down)
 
 ### In Progress 🚧
-- **XML Parsing**: Full slide XML structure parsing
 - **Complex Shapes**: Additional shape types
-- **Effects**: Shadows, gradients, transparency
+- **Effects**: Shadows, transparency
 - **Layout Engine**: Proper text flow and alignment
+
+### Completed Recent Updates ✅
+- **Tables**: Table rendering implemented (December 2024)
+  - Parses `<a:tbl>` elements within `<p:graphicFrame>`
+  - Supports column widths and row heights
+  - Renders cell backgrounds with alternating colors
+  - Header row styling (blue background, white text)
+  - Cell borders and text content
+- **XML Parsing**: Enhanced to support table structures
+- **Gradients**: Basic gradient fill support implemented
 
 ### Future Enhancements 📋
 - **Animations**: Slide transitions and animations
 - **Media**: Video and audio support
 - **Charts**: Chart rendering
-- **Tables**: Table rendering
 - **Smart Art**: SmartArt diagram support
 - **Themes**: Full theme support
 - **Master Slides**: Master slide inheritance
+- **Table Enhancements**: 
+  - Cell merging support
+  - Custom table styles
+  - Text alignment per cell
+  - Better theme integration
 - Edge case handling
 
 ### Performance Tests

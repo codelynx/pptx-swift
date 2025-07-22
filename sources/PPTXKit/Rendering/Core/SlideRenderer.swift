@@ -192,6 +192,16 @@ public class SlideRenderer {
 						elements.append(shapeElement)
 						processedIDs.insert(shape.id)
 					}
+					
+				case .table(let tableInfo):
+					// Create table element
+					let tableElement = createTableElement(
+						from: tableInfo,
+						frame: shape.frame,
+						transform: shape.transform
+					)
+					elements.append(tableElement)
+					processedIDs.insert(shape.id)
 				}
 			}
 		} else {
@@ -382,6 +392,108 @@ public class SlideRenderer {
 			type: .shape,
 			frame: frame,
 			content: .shape(shape),
+			transform: transform
+		)
+	}
+	
+	/// Create table element
+	private func createTableElement(from tableInfo: SlideXMLParser.TableInfo, frame: CGRect, transform: CGAffineTransform) -> RenderElement {
+		var elements: [RenderElement] = []
+		
+		// Calculate cell dimensions
+		let numColumns = tableInfo.columnWidths.count
+		let numRows = tableInfo.rows.count
+		
+		guard numColumns > 0 && numRows > 0 else {
+			// Return empty group if no data
+			return RenderElement(
+				type: .group,
+				frame: frame,
+				content: .group([]),
+				transform: transform
+			)
+		}
+		
+		// Calculate cell sizes based on table frame and column/row dimensions
+		let totalWidth = tableInfo.columnWidths.reduce(0, +)
+		let totalHeight = tableInfo.rowHeights.reduce(0, +)
+		let scaleX = frame.width / totalWidth
+		let scaleY = frame.height / totalHeight
+		
+		// Draw table cells
+		var yOffset: CGFloat = frame.origin.y
+		
+		for (rowIndex, row) in tableInfo.rows.enumerated() {
+			let rowHeight = rowIndex < tableInfo.rowHeights.count ? tableInfo.rowHeights[rowIndex] * scaleY : frame.height / CGFloat(numRows)
+			var xOffset: CGFloat = frame.origin.x
+			
+			for (colIndex, cell) in row.enumerated() {
+				let colWidth = colIndex < tableInfo.columnWidths.count ? tableInfo.columnWidths[colIndex] * scaleX : frame.width / CGFloat(numColumns)
+				
+				// Create cell background with border
+				let cellFrame = CGRect(x: xOffset, y: yOffset, width: colWidth, height: rowHeight)
+				
+				// Determine cell fill color based on row (header row is darker)
+				let fillColor: CGColor
+				if rowIndex == 0 {
+					// Header row - use theme accent color or default blue
+					fillColor = CGColor(red: 0.31, green: 0.506, blue: 0.741, alpha: 1.0) // #4F81BD
+				} else {
+					// Alternating row colors
+					fillColor = rowIndex % 2 == 1 ? 
+						CGColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0) : 
+						CGColor(red: 0.95, green: 0.95, blue: 0.95, alpha: 1.0)
+				}
+				
+				// Create cell background shape
+				let cellShape = ShapeData(
+					type: .rectangle,
+					fill: .solid(fillColor),
+					stroke: StrokeStyle(color: CGColor(gray: 0.7, alpha: 1.0), width: 0.5)
+				)
+				
+				let cellElement = RenderElement(
+					type: .shape,
+					frame: cellFrame,
+					content: .shape(cellShape),
+					transform: .identity
+				)
+				elements.append(cellElement)
+				
+				// Add text content
+				if !cell.text.isEmpty {
+					let textColor = rowIndex == 0 ? CGColor.white : CGColor.black
+					let fontSize: CGFloat = 12
+					let font = PlatformFont.systemFont(ofSize: fontSize)
+					let textStyle = TextStyle(
+						font: font,
+						color: textColor,
+						alignment: .center
+					)
+					
+					// Add padding to text
+					let textFrame = cellFrame.insetBy(dx: 4, dy: 2)
+					
+					let textElement = RenderElement(
+						type: .text,
+						frame: textFrame,
+						content: .text(cell.text, textStyle),
+						transform: .identity
+					)
+					elements.append(textElement)
+				}
+				
+				xOffset += colWidth
+			}
+			
+			yOffset += rowHeight
+		}
+		
+		// Return group element containing all table elements
+		return RenderElement(
+			type: .group,
+			frame: frame,
+			content: .group(elements),
 			transform: transform
 		)
 	}

@@ -26,6 +26,7 @@ The project includes a command-line tool (`pptx-analyzer`) that's perfect for te
 - 🎨 **Theme Support** - Proper handling of PowerPoint theme colors and styles
 - 🔤 **Text Rendering** - Accurate text positioning with font styles and formatting
 - 🔷 **Shape Rendering** - Support for rectangles, ellipses, and custom shapes with fills/gradients
+- 📊 **Table Rendering** - Support for PowerPoint tables with cell styling and borders
 - 🚀 **Performance** - On-demand parsing and rendering for optimal performance
 
 ### CLI Tool (pptx-analyzer)

@@ -19,6 +19,7 @@ public class SlideXMLParser: NSObject {
 			case textBox(TextBoxInfo)
 			case picture(PictureInfo)
 			case shape(ShapeProperties)
+			case table(TableInfo)
 		}
 	}
 	
@@ -103,6 +104,17 @@ public class SlideXMLParser: NSObject {
 		let angle: CGFloat?
 	}
 	
+	public struct TableInfo {
+		public let rows: [[TableCell]]
+		public let columnWidths: [CGFloat]
+		public let rowHeights: [CGFloat]
+	}
+	
+	public struct TableCell {
+		public let text: String
+		public let paragraphs: [ParagraphInfo]
+	}
+	
 	// Parser state
 	private var shapes: [ShapeInfo] = []
 	private var currentElement = ""
@@ -133,6 +145,17 @@ public class SlideXMLParser: NSObject {
 	private var isInFillRef = false
 	private var styleFillColor: String?
 	private var currentPlaceholderType: String?
+	
+	// Table parsing state
+	private var isInGraphicFrame = false
+	private var isInTable = false
+	private var isInTableRow = false
+	private var isInTableCell = false
+	private var currentTableRows: [[TableCell]] = []
+	private var currentTableRow: [TableCell] = []
+	private var currentTableCellParagraphs: [ParagraphInfo] = []
+	private var currentColumnWidths: [CGFloat] = []
+	private var currentRowHeights: [CGFloat] = []
 	
 	// EMU to points conversion (1 point = 12700 EMUs)
 	private let emuPerPoint: CGFloat = 12700
@@ -184,6 +207,15 @@ public class SlideXMLParser: NSObject {
 		currentGradientColors = []
 		hasShapeLine = false
 		isInShapeProperties = false
+		isInGraphicFrame = false
+		isInTable = false
+		isInTableRow = false
+		isInTableCell = false
+		currentTableRows = []
+		currentTableRow = []
+		currentTableCellParagraphs = []
+		currentColumnWidths = []
+		currentRowHeights = []
 		isInGradientFill = false
 		isInShapeStyle = false
 		isInFillRef = false
@@ -219,7 +251,7 @@ extension SlideXMLParser: XMLParserDelegate {
 		currentElement = elementName
 		
 		// Shape container elements
-		if elementName == "p:sp" || elementName == "p:pic" || elementName == "p:graphicFrame" {
+		if elementName == "p:sp" || elementName == "p:pic" || elementName == "p:graphicFrame" || elementName == "p:cxnSp" {
 			isInShape = true
 			currentShapeId = "shape\(shapes.count + 1)"
 			currentFrame = .zero
@@ -229,8 +261,11 @@ extension SlideXMLParser: XMLParserDelegate {
 			if elementName == "p:pic" {
 				isInPicture = true
 				currentShapeType = "picture"
-			} else if elementName == "p:sp" {
+			} else if elementName == "p:sp" || elementName == "p:cxnSp" {
 				currentShapeType = "shape"
+			} else if elementName == "p:graphicFrame" {
+				isInGraphicFrame = true
+				currentShapeType = "graphicFrame"
 			}
 		}
 		
@@ -249,6 +284,9 @@ extension SlideXMLParser: XMLParserDelegate {
 				case "ctrTitle":
 					// Default center title position
 					currentFrame = CGRect(x: 120, y: 88, width: 720, height: 188)
+				case "title":
+					// Default title position (left-aligned)
+					currentFrame = CGRect(x: 66, y: 60, width: 828, height: 104)
 				case "subTitle":
 					// Default subtitle position
 					currentFrame = CGRect(x: 120, y: 310, width: 720, height: 100)
@@ -259,6 +297,27 @@ extension SlideXMLParser: XMLParserDelegate {
 					// Default fallback
 					currentFrame = CGRect(x: 50, y: 50, width: 500, height: 100)
 				}
+			} else if let idx = attributeDict["idx"] {
+				// Content placeholder without specific type
+				let size = attributeDict["sz"] ?? "full"
+				
+				if size == "half" {
+					// Two-column layout
+					switch idx {
+					case "1":
+						// Left column
+						currentFrame = CGRect(x: 66, y: 170, width: 404, height: 380)
+					case "2":
+						// Right column
+						currentFrame = CGRect(x: 490, y: 170, width: 404, height: 380)
+					default:
+						currentFrame = CGRect(x: 66, y: 170, width: 828, height: 380)
+					}
+				} else {
+					// Full width
+					currentFrame = CGRect(x: 66, y: 170, width: 828, height: 380)
+				}
+				currentPlaceholderType = "body"
 			}
 		}
 		
@@ -405,7 +464,7 @@ extension SlideXMLParser: XMLParserDelegate {
 		}
 		
 		// Text body
-		if elementName == "p:txBody" && isInShape {
+		if (elementName == "p:txBody" && isInShape) || (elementName == "a:txBody" && isInTableCell) {
 			isInTextBody = true
 			currentParagraphs = []
 		}
@@ -451,10 +510,17 @@ extension SlideXMLParser: XMLParserDelegate {
 			
 			// Default paragraph properties based on placeholder type
 			var defaultAlignment: NSTextAlignment = .left
+			var defaultBulletType: BulletType? = nil
+			
 			if let placeholderType = currentPlaceholderType {
 				switch placeholderType {
 				case "ctrTitle", "subTitle":
 					defaultAlignment = .center
+				case "body":
+					// Body text typically has bullets in presentations
+					// But don't add default bullets if we're parsing a numbered list
+					// (this will be overridden by buAutoNum if present)
+					defaultBulletType = .bullet("•")
 				default:
 					defaultAlignment = .left
 				}
@@ -463,7 +529,7 @@ extension SlideXMLParser: XMLParserDelegate {
 			currentParagraphProperties = ParagraphProperties(
 				alignment: defaultAlignment,
 				indent: 0,
-				bulletType: nil,
+				bulletType: defaultBulletType,
 				spacing: LineSpacing(before: 0, after: 0, line: 1.0)
 			)
 		}
@@ -501,6 +567,19 @@ extension SlideXMLParser: XMLParserDelegate {
 					spacing: currentParagraphProperties?.spacing ?? LineSpacing(before: 0, after: 0, line: 1.0)
 				)
 			}
+		}
+		
+		// Auto-numbering
+		if elementName == "a:buAutoNum" && isInParagraph {
+			let numberType = attributeDict["type"] ?? "arabicPeriod"
+			// For now, we'll track paragraph count to generate numbers
+			// In a real implementation, this would need to track numbering state
+			currentParagraphProperties = ParagraphProperties(
+				alignment: currentParagraphProperties?.alignment ?? .left,
+				indent: currentParagraphProperties?.indent ?? 0,
+				bulletType: .number("\(currentParagraphs.count + 1)"), // Simple numbering
+				spacing: currentParagraphProperties?.spacing ?? LineSpacing(before: 0, after: 0, line: 1.0)
+			)
 		}
 		
 		// Text run
@@ -599,6 +678,38 @@ extension SlideXMLParser: XMLParserDelegate {
 				currentPictureRelId = embed
 			}
 		}
+		
+		// Table detection
+		if elementName == "a:tbl" && isInGraphicFrame {
+			isInTable = true
+			currentTableRows = []
+			currentColumnWidths = []
+			currentRowHeights = []
+		}
+		
+		// Table grid column
+		if elementName == "a:gridCol" && isInTable {
+			if let w = attributeDict["w"], let width = Int(w) {
+				currentColumnWidths.append(emuToPoints(width))
+			}
+		}
+		
+		// Table row
+		if elementName == "a:tr" && isInTable {
+			isInTableRow = true
+			currentTableRow = []
+			if let h = attributeDict["h"], let height = Int(h) {
+				currentRowHeights.append(emuToPoints(height))
+			}
+		}
+		
+		// Table cell
+		if elementName == "a:tc" && isInTableRow {
+			isInTableCell = true
+			currentTableCellParagraphs = []
+			// Reset text parsing state for cell content
+			currentParagraphs = []
+		}
 	}
 	
 	public func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -648,28 +759,9 @@ extension SlideXMLParser: XMLParserDelegate {
 		}
 		
 		// End of text body
-		if elementName == "p:txBody" && isInTextBody {
+		if (elementName == "p:txBody" || elementName == "a:txBody") && isInTextBody {
 			isInTextBody = false
-			
-			
-			let textBox = TextBoxInfo(
-				paragraphs: currentParagraphs,
-				bodyProperties: BodyProperties(
-					margins: EdgeInsets(top: 3.6, left: 7.2, bottom: 3.6, right: 7.2),
-					wrap: true,
-					anchor: .top
-				)
-			)
-			
-			let shape = ShapeInfo(
-				id: currentShapeId,
-				frame: currentFrame,
-				transform: currentTransform,
-				type: .textBox(textBox)
-			)
-			shapes.append(shape)
-			
-			currentParagraphs = []
+			// Don't create shape here - wait until p:sp ends to determine shape type
 		}
 		
 		// End of gradient fill
@@ -693,8 +785,42 @@ extension SlideXMLParser: XMLParserDelegate {
 			isInShapeProperties = false
 		}
 		
+		// End of table cell
+		if elementName == "a:tc" && isInTableCell {
+			// Collect all text from paragraphs
+			var cellText = ""
+			for (index, paragraph) in currentParagraphs.enumerated() {
+				for run in paragraph.runs {
+					cellText += run.text
+				}
+				if index < currentParagraphs.count - 1 {
+					cellText += "\n"
+				}
+			}
+			
+			let cell = TableCell(
+				text: cellText,
+				paragraphs: currentParagraphs
+			)
+			currentTableRow.append(cell)
+			isInTableCell = false
+			currentParagraphs = []
+		}
+		
+		// End of table row
+		if elementName == "a:tr" && isInTableRow {
+			currentTableRows.append(currentTableRow)
+			isInTableRow = false
+			currentTableRow = []
+		}
+		
+		// End of table
+		if elementName == "a:tbl" && isInTable {
+			// Table parsing complete, will be added when graphicFrame ends
+		}
+		
 		// End of shape
-		if elementName == "p:sp" || elementName == "p:pic" || elementName == "p:graphicFrame" {
+		if elementName == "p:sp" || elementName == "p:pic" || elementName == "p:graphicFrame" || elementName == "p:cxnSp" {
 			// Handle picture elements
 			if elementName == "p:pic" && isInPicture {
 				if let relId = currentPictureRelId {
@@ -711,17 +837,15 @@ extension SlideXMLParser: XMLParserDelegate {
 				currentPictureRelId = nil
 			}
 			// Handle regular shapes
-			else if elementName == "p:sp" && currentShapeType == "shape" {
-				// Check if we need to create a background shape
+			else if elementName == "p:sp" || elementName == "p:cxnSp" {
+				// Determine if this is a shape with geometry or just a text box
+				let hasGeometry = currentGeometryType != nil
+				let hasText = !currentParagraphs.isEmpty
 				let fillColor = currentFillColor ?? styleFillColor
 				let hasGradient = !currentGradientColors.isEmpty && currentGradientColors.allSatisfy({ $0.color != "pending" })
 				
-				
-				// Create a background shape if:
-				// 1. The shape has no text (pure shape), OR
-				// 2. The shape has text AND has a fill color or gradient
-				if currentParagraphs.isEmpty || fillColor != nil || hasGradient {
-					// Create gradient fill if we have gradient colors
+				if hasGeometry {
+					// This is a shape with preset geometry
 					let gradientFill: GradientFill?
 					if hasGradient {
 						gradientFill = GradientFill(
@@ -732,37 +856,77 @@ extension SlideXMLParser: XMLParserDelegate {
 						gradientFill = nil
 					}
 					
-					// Only create the shape if it's a pure shape OR has actual fill
-					if currentParagraphs.isEmpty || fillColor != nil || gradientFill != nil {
-						let shapeProps = ShapeProperties(
-							geometryType: currentGeometryType,
-							fillColor: fillColor,
-							gradientFill: gradientFill,
-							hasStroke: hasShapeLine,
-							strokeColor: nil, // TODO: Parse stroke color
-							strokeWidth: nil  // TODO: Parse stroke width
+					let shapeProps = ShapeProperties(
+						geometryType: currentGeometryType,
+						fillColor: fillColor,
+						gradientFill: gradientFill,
+						hasStroke: hasShapeLine,
+						strokeColor: nil, // TODO: Parse stroke color
+						strokeWidth: nil  // TODO: Parse stroke width
+					)
+					let shape = ShapeInfo(
+						id: currentShapeId,
+						frame: currentFrame,
+						transform: currentTransform,
+						type: .shape(shapeProps)
+					)
+					shapes.append(shape)
+					
+					// If the shape also has text, add a text box overlay
+					if hasText {
+						let textBox = TextBoxInfo(
+							paragraphs: currentParagraphs,
+							bodyProperties: BodyProperties(
+								margins: EdgeInsets(top: 3.6, left: 7.2, bottom: 3.6, right: 7.2),
+								wrap: true,
+								anchor: .top
+							)
 						)
-						let shape = ShapeInfo(
-							id: currentShapeId,
+						let textShape = ShapeInfo(
+							id: "\(currentShapeId)_text",
 							frame: currentFrame,
 							transform: currentTransform,
-							type: .shape(shapeProps)
+							type: .textBox(textBox)
 						)
-						
-						// Insert background shape BEFORE the text box if we have text
-						if !currentParagraphs.isEmpty && !shapes.isEmpty {
-							// Find the text box we just added and insert before it
-							let lastIndex = shapes.count - 1
-							if case .textBox = shapes[lastIndex].type, shapes[lastIndex].id == currentShapeId {
-								shapes.insert(shape, at: lastIndex)
-							} else {
-								shapes.append(shape)
-							}
-						} else {
-							shapes.append(shape)
-						}
+						shapes.append(textShape)
 					}
+				} else if hasText {
+					// This is just a text box without geometry
+					let textBox = TextBoxInfo(
+						paragraphs: currentParagraphs,
+						bodyProperties: BodyProperties(
+							margins: EdgeInsets(top: 3.6, left: 7.2, bottom: 3.6, right: 7.2),
+							wrap: true,
+							anchor: .top
+						)
+					)
+					let shape = ShapeInfo(
+						id: currentShapeId,
+						frame: currentFrame,
+						transform: currentTransform,
+						type: .textBox(textBox)
+					)
+					shapes.append(shape)
 				}
+			}
+			// Handle graphic frame (tables)
+			else if elementName == "p:graphicFrame" && isInGraphicFrame {
+				if isInTable && !currentTableRows.isEmpty {
+					let table = TableInfo(
+						rows: currentTableRows,
+						columnWidths: currentColumnWidths,
+						rowHeights: currentRowHeights
+					)
+					let shape = ShapeInfo(
+						id: currentShapeId,
+						frame: currentFrame,
+						transform: currentTransform,
+						type: .table(table)
+					)
+					shapes.append(shape)
+				}
+				isInGraphicFrame = false
+				isInTable = false
 			}
 			
 			isInShape = false
@@ -771,6 +935,8 @@ extension SlideXMLParser: XMLParserDelegate {
 			hasShapeLine = false
 			styleFillColor = nil // Reset style fill color
 			currentPlaceholderType = nil // Reset placeholder type
+			currentGeometryType = nil // Reset geometry type
+			currentParagraphs = [] // Clear paragraphs
 		}
 	}
 }
