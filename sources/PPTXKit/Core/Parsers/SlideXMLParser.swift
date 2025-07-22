@@ -102,6 +102,13 @@ public class SlideXMLParser: NSObject {
 	public struct GradientFill {
 		let colors: [(color: String, position: CGFloat)]
 		let angle: CGFloat?
+		let type: GradientType?
+		
+		enum GradientType {
+			case linear
+			case radial
+			case path
+		}
 	}
 	
 	public struct TableInfo {
@@ -133,7 +140,16 @@ public class SlideXMLParser: NSObject {
 	private var currentGeometryType: String?
 	private var currentFillColor: String?
 	private var currentGradientColors: [(color: String, position: CGFloat)] = []
+	private var currentGradientAngle: CGFloat?
+	private var currentGradientType: GradientFill.GradientType?
+	private var pendingGradientColorMods: (lumMod: Int?, lumOff: Int?)? // For gradient stop color modifications
+	private var isInSchemeColor = false // Track when we're inside a schemeClr element
+	private var pendingSchemeColor: String? // Store color until modifiers are parsed
 	private var hasShapeLine = false
+	private var currentStrokeColor: String?
+	private var currentStrokeWidth: CGFloat?
+	private var isInShapeLine = false
+	private var hasNoFill = false
 	private var isInShape = false
 	private var isInTextBody = false
 	private var isInParagraph = false
@@ -206,6 +222,10 @@ public class SlideXMLParser: NSObject {
 		currentGeometryType = nil
 		currentGradientColors = []
 		hasShapeLine = false
+		hasNoFill = false
+		currentStrokeColor = nil
+		currentStrokeWidth = nil
+		isInShapeLine = false
 		isInShapeProperties = false
 		isInGraphicFrame = false
 		isInTable = false
@@ -242,6 +262,106 @@ public class SlideXMLParser: NSObject {
 		case "just", "justify": return .justified
 		default: return .left
 		}
+	}
+	
+	/// Apply luminance modifications to a color
+	private func applyLuminanceModifications(to hexColor: String, lumMod: Int?, lumOff: Int?) -> String {
+		// If no modifications, return original color
+		guard lumMod != nil || lumOff != nil else { return hexColor }
+		
+		// Parse hex color to RGB
+		let hex = hexColor.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+		var int: UInt64 = 0
+		Scanner(string: hex).scanHexInt64(&int)
+		
+		let r = CGFloat((int >> 16) & 0xFF) / 255.0
+		let g = CGFloat((int >> 8) & 0xFF) / 255.0
+		let b = CGFloat(int & 0xFF) / 255.0
+		
+		// Convert to HSL for luminance adjustment
+		var h: CGFloat = 0, s: CGFloat = 0, l: CGFloat = 0
+		rgbToHsl(r: r, g: g, b: b, h: &h, s: &s, l: &l)
+		
+		// Apply luminance modifications
+		if let lumMod = lumMod {
+			// lumMod is in percentage * 1000 (e.g., 50000 = 50%)
+			l = l * CGFloat(lumMod) / 100000.0
+		}
+		
+		if let lumOff = lumOff {
+			// lumOff is in percentage * 1000 (e.g., 20000 = 20%)
+			l = l + CGFloat(lumOff) / 100000.0
+		}
+		
+		// Clamp luminance to valid range
+		l = max(0, min(1, l))
+		
+		// Convert back to RGB
+		var newR: CGFloat = 0, newG: CGFloat = 0, newB: CGFloat = 0
+		hslToRgb(h: h, s: s, l: l, r: &newR, g: &newG, b: &newB)
+		
+		// Convert back to hex
+		let hexR = String(format: "%02X", Int(newR * 255))
+		let hexG = String(format: "%02X", Int(newG * 255))
+		let hexB = String(format: "%02X", Int(newB * 255))
+		
+		return hexR + hexG + hexB
+	}
+	
+	/// Convert RGB to HSL
+	private func rgbToHsl(r: CGFloat, g: CGFloat, b: CGFloat, h: inout CGFloat, s: inout CGFloat, l: inout CGFloat) {
+		let maxVal = max(r, g, b)
+		let minVal = min(r, g, b)
+		let delta = maxVal - minVal
+		
+		// Lightness
+		l = (maxVal + minVal) / 2
+		
+		if delta == 0 {
+			// Achromatic (gray)
+			h = 0
+			s = 0
+		} else {
+			// Saturation
+			s = l > 0.5 ? delta / (2 - maxVal - minVal) : delta / (maxVal + minVal)
+			
+			// Hue
+			if maxVal == r {
+				h = ((g - b) / delta + (g < b ? 6 : 0)) / 6
+			} else if maxVal == g {
+				h = ((b - r) / delta + 2) / 6
+			} else {
+				h = ((r - g) / delta + 4) / 6
+			}
+		}
+	}
+	
+	/// Convert HSL to RGB
+	private func hslToRgb(h: CGFloat, s: CGFloat, l: CGFloat, r: inout CGFloat, g: inout CGFloat, b: inout CGFloat) {
+		if s == 0 {
+			// Achromatic
+			r = l
+			g = l
+			b = l
+		} else {
+			let q = l < 0.5 ? l * (1 + s) : l + s - l * s
+			let p = 2 * l - q
+			
+			r = hueToRgb(p: p, q: q, t: h + 1.0/3.0)
+			g = hueToRgb(p: p, q: q, t: h)
+			b = hueToRgb(p: p, q: q, t: h - 1.0/3.0)
+		}
+	}
+	
+	/// Helper for HSL to RGB conversion
+	private func hueToRgb(p: CGFloat, q: CGFloat, t: CGFloat) -> CGFloat {
+		var t = t
+		if t < 0 { t += 1 }
+		if t > 1 { t -= 1 }
+		if t < 1.0/6.0 { return p + (q - p) * 6 * t }
+		if t < 1.0/2.0 { return q }
+		if t < 2.0/3.0 { return p + (q - p) * (2.0/3.0 - t) * 6 }
+		return p
 	}
 }
 
@@ -348,9 +468,12 @@ extension SlideXMLParser: XMLParserDelegate {
 		if elementName == "p:spPr" && isInShape {
 			isInShapeProperties = true
 			hasShapeLine = false // Reset
+			hasNoFill = false // Reset
 			currentFillColor = nil
 			currentGeometryType = nil
 			currentGradientColors = []
+			currentGradientAngle = nil
+			currentGradientType = nil
 		}
 		
 		// Preset geometry (shape type)
@@ -361,6 +484,19 @@ extension SlideXMLParser: XMLParserDelegate {
 		// Line/border element
 		if elementName == "a:ln" && isInShapeProperties {
 			hasShapeLine = true
+			isInShapeLine = true
+			currentStrokeColor = nil
+			currentStrokeWidth = nil
+			// Parse width if present
+			if let w = attributeDict["w"], let width = Int(w) {
+				currentStrokeWidth = emuToPoints(width)
+			}
+		}
+		
+		// No fill
+		if elementName == "a:noFill" && isInShapeProperties {
+			// Mark that this shape has no fill
+			hasNoFill = true
 		}
 		
 		// Solid fill
@@ -371,6 +507,17 @@ extension SlideXMLParser: XMLParserDelegate {
 		// Gradient fill
 		if elementName == "a:gradFill" && isInShapeProperties {
 			isInGradientFill = true
+			currentGradientAngle = nil
+			currentGradientType = .linear // Default to linear
+		}
+		
+		// Linear gradient
+		if elementName == "a:lin" && isInGradientFill {
+			if let ang = attributeDict["ang"], let angle = Int(ang) {
+				// Convert from 60000ths of a degree to degrees
+				currentGradientAngle = CGFloat(angle) / 60000.0
+			}
+			currentGradientType = .linear
 		}
 		
 		// Gradient stop
@@ -380,13 +527,39 @@ extension SlideXMLParser: XMLParserDelegate {
 				let position = CGFloat(pos) / 100000.0
 				// We'll get the color in the next srgbClr or schemeClr element
 				currentGradientColors.append(("pending", position))
+				// Don't reset modifiers here - they come after the schemeClr element
+			}
+		}
+		
+		// Luminance modification
+		if elementName == "a:lumMod" && isInSchemeColor {
+			if let val = attributeDict["val"], let lumMod = Int(val) {
+				if pendingGradientColorMods == nil {
+					pendingGradientColorMods = (lumMod: lumMod, lumOff: nil)
+				} else {
+					pendingGradientColorMods?.lumMod = lumMod
+				}
+			}
+		}
+		
+		// Luminance offset
+		if elementName == "a:lumOff" && isInSchemeColor {
+			if let val = attributeDict["val"], let lumOff = Int(val) {
+				if pendingGradientColorMods == nil {
+					pendingGradientColorMods = (lumMod: nil, lumOff: lumOff)
+				} else {
+					pendingGradientColorMods?.lumOff = lumOff
+				}
 			}
 		}
 		
 		// Color value for shape fill or gradient
 		if elementName == "a:srgbClr" && isInShapeProperties && !isInRun {
 			if let val = attributeDict["val"] {
-				if isInGradientFill && !currentGradientColors.isEmpty {
+				if isInShapeLine {
+					// This is stroke color
+					currentStrokeColor = val
+				} else if isInGradientFill && !currentGradientColors.isEmpty {
 					// Update the last gradient color
 					let lastIndex = currentGradientColors.count - 1
 					currentGradientColors[lastIndex].color = val
@@ -398,6 +571,7 @@ extension SlideXMLParser: XMLParserDelegate {
 		
 		// Scheme color (theme color)
 		if elementName == "a:schemeClr" && isInShapeProperties {
+			isInSchemeColor = true
 			if let val = attributeDict["val"] {
 				// Resolve color from theme if available
 				let color: String
@@ -417,13 +591,8 @@ extension SlideXMLParser: XMLParserDelegate {
 					}
 				}
 				
-				if isInGradientFill && !currentGradientColors.isEmpty {
-					// Update the last gradient color
-					let lastIndex = currentGradientColors.count - 1
-					currentGradientColors[lastIndex].color = color
-				} else {
-					currentFillColor = color
-				}
+				// Store color temporarily - we'll apply it when we exit schemeClr
+				pendingSchemeColor = color
 			}
 		}
 		
@@ -767,6 +936,36 @@ extension SlideXMLParser: XMLParserDelegate {
 		// End of gradient fill
 		if elementName == "a:gradFill" {
 			isInGradientFill = false
+			currentGradientAngle = nil
+			currentGradientType = nil
+			pendingGradientColorMods = nil
+		}
+		
+		// End of scheme color
+		if elementName == "a:schemeClr" {
+			isInSchemeColor = false
+			// Apply color now that we have all modifiers
+			if let color = pendingSchemeColor {
+				if isInShapeLine {
+					// This is stroke color
+					currentStrokeColor = color
+				} else if isInGradientFill && !currentGradientColors.isEmpty {
+					// Update the last gradient color
+					let lastIndex = currentGradientColors.count - 1
+					// Apply luminance modifications if any
+					let modifiedColor = applyLuminanceModifications(to: color, lumMod: pendingGradientColorMods?.lumMod, lumOff: pendingGradientColorMods?.lumOff)
+					currentGradientColors[lastIndex].color = modifiedColor
+				} else {
+					currentFillColor = color
+				}
+				pendingSchemeColor = nil
+			}
+		}
+		
+		// End of gradient stop
+		if elementName == "a:gs" {
+			// Reset color modifiers after processing a gradient stop
+			pendingGradientColorMods = nil
 		}
 		
 		// End of fill reference
@@ -778,6 +977,11 @@ extension SlideXMLParser: XMLParserDelegate {
 		if elementName == "p:style" {
 			isInShapeStyle = false
 			isInFillRef = false // Reset just in case
+		}
+		
+		// End of line/stroke
+		if elementName == "a:ln" {
+			isInShapeLine = false
 		}
 		
 		// End of shape properties
@@ -841,7 +1045,7 @@ extension SlideXMLParser: XMLParserDelegate {
 				// Determine if this is a shape with geometry or just a text box
 				let hasGeometry = currentGeometryType != nil
 				let hasText = !currentParagraphs.isEmpty
-				let fillColor = currentFillColor ?? styleFillColor
+				let fillColor = hasNoFill ? nil : (currentFillColor ?? styleFillColor)
 				let hasGradient = !currentGradientColors.isEmpty && currentGradientColors.allSatisfy({ $0.color != "pending" })
 				
 				if hasGeometry {
@@ -850,7 +1054,8 @@ extension SlideXMLParser: XMLParserDelegate {
 					if hasGradient {
 						gradientFill = GradientFill(
 							colors: currentGradientColors,
-							angle: nil // TODO: Parse gradient angle
+							angle: currentGradientAngle,
+							type: currentGradientType
 						)
 					} else {
 						gradientFill = nil
@@ -861,8 +1066,8 @@ extension SlideXMLParser: XMLParserDelegate {
 						fillColor: fillColor,
 						gradientFill: gradientFill,
 						hasStroke: hasShapeLine,
-						strokeColor: nil, // TODO: Parse stroke color
-						strokeWidth: nil  // TODO: Parse stroke width
+						strokeColor: currentStrokeColor,
+						strokeWidth: currentStrokeWidth
 					)
 					let shape = ShapeInfo(
 						id: currentShapeId,
@@ -933,6 +1138,8 @@ extension SlideXMLParser: XMLParserDelegate {
 			currentShapeType = ""
 			currentShapeProperties = nil
 			hasShapeLine = false
+			currentStrokeColor = nil
+			currentStrokeWidth = nil
 			styleFillColor = nil // Reset style fill color
 			currentPlaceholderType = nil // Reset placeholder type
 			currentGeometryType = nil // Reset geometry type

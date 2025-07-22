@@ -277,7 +277,24 @@ let fontMap = [
   - Header row styling (blue background, white text)
   - Cell borders and text content
 - **XML Parsing**: Enhanced to support table structures
-- **Gradients**: Basic gradient fill support implemented
+- **Gradients**: Full gradient fill support implemented (December 2024)
+  - Linear gradients with angle support
+  - Gradient stops with position values
+  - Luminance modifications (lumMod, lumOff) for color variations
+  - Theme color support in gradients
+- **Stroke Rendering**: Complete stroke/border support (December 2024)
+  - Stroke color parsing from both srgbClr and schemeClr
+  - Stroke width parsing and rendering
+  - Theme color support for strokes
+  - Proper stroke rendering for all shape types
+- **No Fill Support**: Shapes with explicit no fill (December 2024)
+  - Parsing of `<a:noFill/>` elements
+  - Proper handling of shapes with only strokes
+- **Additional Shapes**: Extended shape support (December 2024)
+  - Heart shape with bezier curves
+  - Polygon shapes (triangle, pentagon, hexagon, octagon, dodecagon)
+  - Line connectors with proper stroke rendering
+  - Arrow shapes (left, right, up, down, bidirectional)
 
 ### Future Enhancements 📋
 - **Animations**: Slide transitions and animations

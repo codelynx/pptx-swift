@@ -339,7 +339,41 @@ public class SlideRenderer {
 		case "ellipse", "circle":
 			shapeType = .ellipse
 		case "roundRect":
-			shapeType = .rectangle // TODO: Add rounded rectangle support
+			shapeType = .custom(ShapeRenderer.createRoundedRectPath(cornerRadius: 10, in: frame))
+		case "star5":
+			shapeType = .custom(ShapeRenderer.createStarPath(points: 5, in: frame))
+		case "star4":
+			shapeType = .custom(ShapeRenderer.createStarPath(points: 4, in: frame))
+		case "star6":
+			shapeType = .custom(ShapeRenderer.createStarPath(points: 6, in: frame))
+		case "star8":
+			shapeType = .custom(ShapeRenderer.createStarPath(points: 8, in: frame))
+		case "heart":
+			shapeType = .custom(createHeartPath(in: frame))
+		case "dodecagon":
+			shapeType = .custom(createPolygonPath(sides: 12, in: frame))
+		case "octagon":
+			shapeType = .custom(createPolygonPath(sides: 8, in: frame))
+		case "hexagon":
+			shapeType = .custom(createPolygonPath(sides: 6, in: frame))
+		case "pentagon":
+			shapeType = .custom(createPolygonPath(sides: 5, in: frame))
+		case "triangle":
+			shapeType = .custom(createPolygonPath(sides: 3, in: frame))
+		case "straightConnector1", "line":
+			shapeType = .custom(createLineConnectorPath(in: frame))
+		case "rightArrow", "arrow":
+			shapeType = .custom(ShapeRenderer.createArrowPath(in: frame))
+		case "leftArrow":
+			shapeType = .custom(createLeftArrowPath(in: frame))
+		case "upArrow":
+			shapeType = .custom(createUpArrowPath(in: frame))
+		case "downArrow":
+			shapeType = .custom(createDownArrowPath(in: frame))
+		case "leftRightArrow":
+			shapeType = .custom(createLeftRightArrowPath(in: frame))
+		case "upDownArrow":
+			shapeType = .custom(createUpDownArrowPath(in: frame))
 		default:
 			// Default to rectangle for unknown shapes
 			shapeType = .rectangle
@@ -347,7 +381,11 @@ public class SlideRenderer {
 		
 		// Create fill style
 		let fillStyle: FillStyle?
-		if let gradientFill = shapeProps.gradientFill, !gradientFill.colors.isEmpty {
+		
+		// Special case: connectors typically have no fill
+		if shapeProps.geometryType?.contains("Connector") == true || shapeProps.geometryType == "line" {
+			fillStyle = nil
+		} else if let gradientFill = shapeProps.gradientFill, !gradientFill.colors.isEmpty {
 			// Create gradient fill
 			let colors = gradientFill.colors.compactMap { colorInfo -> CGColor? in
 				parseHexColor(colorInfo.color)
@@ -355,11 +393,39 @@ public class SlideRenderer {
 			let locations = gradientFill.colors.map { $0.position }
 			
 			if !colors.isEmpty {
+				// Determine gradient direction based on angle or default to vertical
+				let angle = gradientFill.angle ?? 90.0 // Default to vertical gradient
+				let radians = angle * .pi / 180.0
+				
+				// Calculate gradient endpoints based on angle
+				let startPoint: CGPoint
+				let endPoint: CGPoint
+				
+				switch angle {
+				case 0: // Horizontal left to right
+					startPoint = CGPoint(x: 0, y: 0.5)
+					endPoint = CGPoint(x: 1, y: 0.5)
+				case 90: // Vertical top to bottom
+					startPoint = CGPoint(x: 0.5, y: 0)
+					endPoint = CGPoint(x: 0.5, y: 1)
+				case 180: // Horizontal right to left
+					startPoint = CGPoint(x: 1, y: 0.5)
+					endPoint = CGPoint(x: 0, y: 0.5)
+				case 270: // Vertical bottom to top
+					startPoint = CGPoint(x: 0.5, y: 1)
+					endPoint = CGPoint(x: 0.5, y: 0)
+				default: // Diagonal based on angle
+					let dx = cos(radians)
+					let dy = sin(radians)
+					startPoint = CGPoint(x: 0.5 - dx * 0.5, y: 0.5 - dy * 0.5)
+					endPoint = CGPoint(x: 0.5 + dx * 0.5, y: 0.5 + dy * 0.5)
+				}
+				
 				fillStyle = .gradient(GradientFill(
 					colors: colors,
 					locations: locations,
-					startPoint: CGPoint(x: 0, y: 0),
-					endPoint: CGPoint(x: 1, y: 1)
+					startPoint: startPoint,
+					endPoint: endPoint
 				))
 			} else {
 				fillStyle = nil
@@ -496,6 +562,147 @@ public class SlideRenderer {
 			content: .group(elements),
 			transform: transform
 		)
+	}
+	
+	/// Create heart shape path
+	private func createHeartPath(in bounds: CGRect) -> CGPath {
+		let path = CGMutablePath()
+		
+		let width = bounds.width
+		let height = bounds.height
+		let x = bounds.origin.x
+		let y = bounds.origin.y
+		
+		// Heart shape using bezier curves
+		path.move(to: CGPoint(x: x + width * 0.5, y: y + height * 0.2))
+		
+		// Left curve
+		path.addCurve(to: CGPoint(x: x, y: y + height * 0.5),
+					  control1: CGPoint(x: x + width * 0.3, y: y),
+					  control2: CGPoint(x: x, y: y + height * 0.3))
+		
+		// Bottom point
+		path.addCurve(to: CGPoint(x: x + width * 0.5, y: y + height),
+					  control1: CGPoint(x: x, y: y + height * 0.7),
+					  control2: CGPoint(x: x + width * 0.3, y: y + height * 0.9))
+		
+		// Right curve
+		path.addCurve(to: CGPoint(x: x + width, y: y + height * 0.5),
+					  control1: CGPoint(x: x + width * 0.7, y: y + height * 0.9),
+					  control2: CGPoint(x: x + width, y: y + height * 0.7))
+		
+		// Top right
+		path.addCurve(to: CGPoint(x: x + width * 0.5, y: y + height * 0.2),
+					  control1: CGPoint(x: x + width, y: y + height * 0.3),
+					  control2: CGPoint(x: x + width * 0.7, y: y))
+		
+		path.closeSubpath()
+		return path
+	}
+	
+	/// Create polygon path with specified number of sides
+	private func createPolygonPath(sides: Int, in bounds: CGRect) -> CGPath {
+		let path = CGMutablePath()
+		
+		let center = CGPoint(x: bounds.midX, y: bounds.midY)
+		let radius = min(bounds.width, bounds.height) / 2
+		
+		let angleStep = (2 * CGFloat.pi) / CGFloat(sides)
+		let startAngle = -CGFloat.pi / 2 // Start at top
+		
+		for i in 0..<sides {
+			let angle = startAngle + angleStep * CGFloat(i)
+			let x = center.x + radius * cos(angle)
+			let y = center.y + radius * sin(angle)
+			
+			if i == 0 {
+				path.move(to: CGPoint(x: x, y: y))
+			} else {
+				path.addLine(to: CGPoint(x: x, y: y))
+			}
+		}
+		
+		path.closeSubpath()
+		return path
+	}
+	
+	/// Create straight line connector path
+	private func createLineConnectorPath(in bounds: CGRect) -> CGPath {
+		let path = CGMutablePath()
+		
+		// Draw a line from left to right center
+		path.move(to: CGPoint(x: bounds.minX, y: bounds.midY))
+		path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
+		
+		return path
+	}
+	
+	/// Create left arrow path
+	private func createLeftArrowPath(in bounds: CGRect) -> CGPath {
+		// Create a right arrow and flip it
+		var transform = CGAffineTransform(scaleX: -1, y: 1).translatedBy(x: -bounds.width, y: 0)
+		return ShapeRenderer.createArrowPath(in: bounds).copy(using: &transform) ?? CGMutablePath()
+	}
+	
+	/// Create up arrow path
+	private func createUpArrowPath(in bounds: CGRect) -> CGPath {
+		// Create a right arrow and rotate it 90 degrees counter-clockwise
+		var transform = CGAffineTransform(translationX: bounds.midX, y: bounds.midY)
+			.rotated(by: -CGFloat.pi / 2)
+			.translatedBy(x: -bounds.midX, y: -bounds.midY)
+		return ShapeRenderer.createArrowPath(in: bounds).copy(using: &transform) ?? CGMutablePath()
+	}
+	
+	/// Create down arrow path
+	private func createDownArrowPath(in bounds: CGRect) -> CGPath {
+		// Create a right arrow and rotate it 90 degrees clockwise
+		var transform = CGAffineTransform(translationX: bounds.midX, y: bounds.midY)
+			.rotated(by: CGFloat.pi / 2)
+			.translatedBy(x: -bounds.midX, y: -bounds.midY)
+		return ShapeRenderer.createArrowPath(in: bounds).copy(using: &transform) ?? CGMutablePath()
+	}
+	
+	/// Create left-right arrow path
+	private func createLeftRightArrowPath(in bounds: CGRect) -> CGPath {
+		let path = CGMutablePath()
+		
+		let arrowHeadWidth = bounds.width * 0.2
+		let shaftHeight = bounds.height * 0.6
+		let shaftTop = (bounds.height - shaftHeight) / 2
+		
+		// Left arrow head
+		path.move(to: CGPoint(x: bounds.minX, y: bounds.midY))
+		path.addLine(to: CGPoint(x: bounds.minX + arrowHeadWidth, y: bounds.minY))
+		path.addLine(to: CGPoint(x: bounds.minX + arrowHeadWidth, y: bounds.minY + shaftTop))
+		
+		// Shaft top
+		path.addLine(to: CGPoint(x: bounds.maxX - arrowHeadWidth, y: bounds.minY + shaftTop))
+		
+		// Right arrow head top
+		path.addLine(to: CGPoint(x: bounds.maxX - arrowHeadWidth, y: bounds.minY))
+		path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
+		
+		// Right arrow head bottom
+		path.addLine(to: CGPoint(x: bounds.maxX - arrowHeadWidth, y: bounds.maxY))
+		path.addLine(to: CGPoint(x: bounds.maxX - arrowHeadWidth, y: bounds.minY + shaftTop + shaftHeight))
+		
+		// Shaft bottom
+		path.addLine(to: CGPoint(x: bounds.minX + arrowHeadWidth, y: bounds.minY + shaftTop + shaftHeight))
+		
+		// Left arrow head bottom
+		path.addLine(to: CGPoint(x: bounds.minX + arrowHeadWidth, y: bounds.maxY))
+		
+		path.closeSubpath()
+		return path
+	}
+	
+	/// Create up-down arrow path
+	private func createUpDownArrowPath(in bounds: CGRect) -> CGPath {
+		// Create a left-right arrow and rotate it 90 degrees
+		var transform = CGAffineTransform(translationX: bounds.midX, y: bounds.midY)
+			.rotated(by: CGFloat.pi / 2)
+			.translatedBy(x: -bounds.midX, y: -bounds.midY)
+		return createLeftRightArrowPath(in: bounds).copy(using: &transform) ?? CGMutablePath()
 	}
 	
 	/// Create simple elements as fallback
